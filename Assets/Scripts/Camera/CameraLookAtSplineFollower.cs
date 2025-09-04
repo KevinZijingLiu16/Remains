@@ -9,34 +9,34 @@ public class CameraLookAtSplineFollower : MonoBehaviour
 {
     [Header("References")]
   
-    public SplineRunnerRB playerRunner;
+    [SerializeField] private SplineRunnerRB playerRunner;
 
-    public Transform playerTransform;
- 
+    [SerializeField] private Transform playerTransform;
+
     public SplineContainer splineContainer;
 
     [Header("Input (New Input System)")]
-   
+
     public InputActionProperty moveAction;
 
     [Header("Motion Settings")]
-    
-    public bool loop = true;
-    
-    public bool decoupleYFromSpline = true;
-    
-    public float offsetAlongSplineMeters = 2.0f;
- 
-    public Vector3 worldOffset = new Vector3(0f, 1.6f, 0f);
+
+    [SerializeField] private bool loop = true;
+
+    [SerializeField] private bool decoupleYFromSpline = true;
+
+    [SerializeField] private float offsetAlongSplineMeters = 2.0f;
+
+    [SerializeField] private Vector3 worldOffset = new Vector3(0f, 1.6f, 0f);
     [Range(0.01f, 1f)]
-   
-    public float stick = 0.9f;
+
+    [SerializeField] private float stick = 0.9f;
 
     [Header("Facing")]
    
-    public bool faceHorizontalOnly = true;
+    [SerializeField] private bool faceHorizontalOnly = true;
  
-    public bool rotateAlongTangent = false;
+    [SerializeField] private bool rotateAlongTangent = false;
 
     // runtime
     Spline _spline;

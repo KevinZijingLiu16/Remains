@@ -118,6 +118,24 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""PrimaryAttack"",
+                    ""type"": ""Button"",
+                    ""id"": ""f2c0b38a-ca20-456f-92c9-05a0183ba74d"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""SecondaryAttack"",
+                    ""type"": ""Button"",
+                    ""id"": ""d9d5d99e-efdf-4d7d-bad3-4e7cf259ec63"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -133,7 +151,7 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
                     ""isPartOfComposite"": false
                 },
                 {
-                    ""name"": ""negative"",
+                    ""name"": ""Negative"",
                     ""id"": ""3bb60998-fa1f-40a7-ba93-442a1a2a1a3c"",
                     ""path"": ""<Keyboard>/a"",
                     ""interactions"": """",
@@ -144,7 +162,7 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
                     ""isPartOfComposite"": true
                 },
                 {
-                    ""name"": ""positive"",
+                    ""name"": ""Positive"",
                     ""id"": ""f03ff373-821f-40bd-83dd-fad9ca45041d"",
                     ""path"": ""<Keyboard>/d"",
                     ""interactions"": """",
@@ -175,6 +193,28 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
                     ""action"": ""TurnOnWeapon"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""2c369d4f-f6db-4b70-b4b2-658b0ae3e3df"",
+                    ""path"": ""<Mouse>/leftButton"",
+                    ""interactions"": ""Hold"",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""PrimaryAttack"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""f6387a88-bfc1-4ce5-a076-19935e7bedcd"",
+                    ""path"": ""<Mouse>/rightButton"",
+                    ""interactions"": ""Hold"",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""SecondaryAttack"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -186,6 +226,8 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
         m_GamePlay_Move = m_GamePlay.FindAction("Move", throwIfNotFound: true);
         m_GamePlay_Jump = m_GamePlay.FindAction("Jump", throwIfNotFound: true);
         m_GamePlay_TurnOnWeapon = m_GamePlay.FindAction("TurnOnWeapon", throwIfNotFound: true);
+        m_GamePlay_PrimaryAttack = m_GamePlay.FindAction("PrimaryAttack", throwIfNotFound: true);
+        m_GamePlay_SecondaryAttack = m_GamePlay.FindAction("SecondaryAttack", throwIfNotFound: true);
     }
 
     ~@PlayerInput()
@@ -269,6 +311,8 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
     private readonly InputAction m_GamePlay_Move;
     private readonly InputAction m_GamePlay_Jump;
     private readonly InputAction m_GamePlay_TurnOnWeapon;
+    private readonly InputAction m_GamePlay_PrimaryAttack;
+    private readonly InputAction m_GamePlay_SecondaryAttack;
     /// <summary>
     /// Provides access to input actions defined in input action map "GamePlay".
     /// </summary>
@@ -292,6 +336,14 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
         /// Provides access to the underlying input action "GamePlay/TurnOnWeapon".
         /// </summary>
         public InputAction @TurnOnWeapon => m_Wrapper.m_GamePlay_TurnOnWeapon;
+        /// <summary>
+        /// Provides access to the underlying input action "GamePlay/PrimaryAttack".
+        /// </summary>
+        public InputAction @PrimaryAttack => m_Wrapper.m_GamePlay_PrimaryAttack;
+        /// <summary>
+        /// Provides access to the underlying input action "GamePlay/SecondaryAttack".
+        /// </summary>
+        public InputAction @SecondaryAttack => m_Wrapper.m_GamePlay_SecondaryAttack;
         /// <summary>
         /// Provides access to the underlying input action map instance.
         /// </summary>
@@ -327,6 +379,12 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
             @TurnOnWeapon.started += instance.OnTurnOnWeapon;
             @TurnOnWeapon.performed += instance.OnTurnOnWeapon;
             @TurnOnWeapon.canceled += instance.OnTurnOnWeapon;
+            @PrimaryAttack.started += instance.OnPrimaryAttack;
+            @PrimaryAttack.performed += instance.OnPrimaryAttack;
+            @PrimaryAttack.canceled += instance.OnPrimaryAttack;
+            @SecondaryAttack.started += instance.OnSecondaryAttack;
+            @SecondaryAttack.performed += instance.OnSecondaryAttack;
+            @SecondaryAttack.canceled += instance.OnSecondaryAttack;
         }
 
         /// <summary>
@@ -347,6 +405,12 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
             @TurnOnWeapon.started -= instance.OnTurnOnWeapon;
             @TurnOnWeapon.performed -= instance.OnTurnOnWeapon;
             @TurnOnWeapon.canceled -= instance.OnTurnOnWeapon;
+            @PrimaryAttack.started -= instance.OnPrimaryAttack;
+            @PrimaryAttack.performed -= instance.OnPrimaryAttack;
+            @PrimaryAttack.canceled -= instance.OnPrimaryAttack;
+            @SecondaryAttack.started -= instance.OnSecondaryAttack;
+            @SecondaryAttack.performed -= instance.OnSecondaryAttack;
+            @SecondaryAttack.canceled -= instance.OnSecondaryAttack;
         }
 
         /// <summary>
@@ -408,5 +472,19 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnTurnOnWeapon(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "PrimaryAttack" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnPrimaryAttack(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "SecondaryAttack" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnSecondaryAttack(InputAction.CallbackContext context);
     }
 }
