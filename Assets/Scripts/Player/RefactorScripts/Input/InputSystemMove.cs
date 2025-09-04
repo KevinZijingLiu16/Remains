@@ -5,8 +5,8 @@ using UnityEngine.InputSystem;
 public class InputSystemMove : MonoBehaviour, IMoveInput
 {
     [Header("Input (New Input System)")]
-    public InputActionProperty moveAction;
-    public InputActionProperty jumpAction;
+    [SerializeField] private InputActionProperty moveAction;
+    [SerializeField] private InputActionProperty jumpAction;
 
     private float _cachedMove;
     private bool _jumpPressed;

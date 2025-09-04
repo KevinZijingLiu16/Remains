@@ -7,43 +7,43 @@ public class SplineRunnerRB : MonoBehaviour
 {
     [Header("Spline Path")]
     public SplineContainer splineContainer;
-    public bool loop = true;
+    [SerializeField] private bool loop = true;
     [Range(0.01f, 1f)] public float stick = 0.9f;   // 0.85~1
 
     [Header("Movement")]
-    public float moveSpeed = 6f;
+    [SerializeField] private float moveSpeed = 6f;
     [Tooltip("Air control factor (0~1). 0 = no control in air, 1 = same as on ground.")]
     [Range(0f, 1f)] public float airControl = 0.6f;
     [Tooltip("Reserved bank angle in degrees. Can be used for visual tilt effects.")]
-    public float bankDegrees = 0f;
+    [SerializeField] private float bankDegrees = 0f;
 
     [Header("Jump & Ground")]
-    public float jumpHeight = 2f;
-    public LayerMask groundLayers = ~0;     
-    public LayerMask obstacleLayers = ~0;  
+    [SerializeField] private float jumpHeight = 2f;
+    [SerializeField] private LayerMask groundLayers = ~0;     
+    [SerializeField] private LayerMask obstacleLayers = ~0;  
    
-    public LayerMask movableLayers = 0;    
-    public float groundCheckRadius = 0.25f;
+    [SerializeField] private LayerMask movableLayers = 0;    
+    [SerializeField] private float groundCheckRadius = 0.25f;
     [Tooltip("Offset for the ground check sphere (world space). Typically slightly upward to avoid false negatives.")]
-    public Vector3 groundCheckOffset = new Vector3(0f, 0.1f, 0f);
+    [SerializeField] private Vector3 groundCheckOffset = new Vector3(0f, 0.1f, 0f);
 
     [Header("Push Movable Settings")]
     [Tooltip("Ratio of movement transferred to movable rigidbodies. 1 = full transfer.")]
-    public float pushTransferRatio = 1.0f;
+    [SerializeField] private float pushTransferRatio = 1.0f;
     [Tooltip("Maximum push distance per frame (m). Prevents excessive displacement.")]
-    public float pushMaxPerStep = 1.0f;
+    [SerializeField] private float pushMaxPerStep = 1.0f;
     [Tooltip("Push skin (m). Small offset to avoid overlapping with other colliders during pushing.")]
-    public float pushSkin = 0.02f;
+    [SerializeField] private float pushSkin = 0.02f;
 
     [Header("Input (New Input System)")]
     public InputActionProperty moveAction;
     public InputActionProperty jumpAction;
 
     [Header("Anti Jitter")]
-   
-    public bool decoupleYFromSpline = true;
 
-    public bool faceHorizontalOnly = true;
+    [SerializeField] private bool decoupleYFromSpline = true;
+
+    [SerializeField] private bool faceHorizontalOnly = true;
 
     Rigidbody _rb;
     Spline _spline;
@@ -55,8 +55,8 @@ public class SplineRunnerRB : MonoBehaviour
     bool _lastMovePositive = true;
 
     [Header("Visual (mesh only)")]
-    public Transform meshRoot;
-    public float meshFacingOffsetY = 0f;
+    [SerializeField] private Transform meshRoot;
+    [SerializeField] private float meshFacingOffsetY = 0f;
     [Tooltip("Flip interpolation speed (0 = instant, 1 = very slow).")]
     [Range(0f, 1f)] public float meshFlipLerp = 0.25f;
 
@@ -80,7 +80,17 @@ public class SplineRunnerRB : MonoBehaviour
             return;
         }
         RecomputeLength();
-        SnapToNearestOnSpline();
+        RecomputeLength();
+        if (_skipInitialSnapOnce)
+        {
+           
+            _skipInitialSnapOnce = false;  
+        }
+        else
+        {
+            SnapToNearestOnSpline();
+        }
+
     }
 
     void OnDisable()
@@ -98,6 +108,14 @@ public class SplineRunnerRB : MonoBehaviour
 
     void FixedUpdate()
     {
+   
+        if (_forceHoldFrames > 0)
+        {
+            _rb.MovePosition(_forcedPosOnce);
+            _forceHoldFrames--;
+            return;
+        }
+
         if (!ValidateSpline(out _spline)) return;
 
         float4x4 world = (float4x4)splineContainer.transform.localToWorldMatrix;
@@ -567,4 +585,42 @@ public class SplineRunnerRB : MonoBehaviour
     {
         return _t;
     }
+
+    int _forceHoldFrames = 0;
+    Vector3 _forcedPosOnce;
+
+    public void ResnapTToWorldPosition(Vector3 worldPos)
+    {
+        if (!ValidateSpline(out _spline)) return;
+
+        float4x4 world = (float4x4)splineContainer.transform.localToWorldMatrix;
+        float4x4 worldToLocal = math.inverse(world);
+
+      
+        float3 posLocal = math.transform(worldToLocal, (float3)worldPos);
+        SplineUtility.GetNearestPoint(_spline, posLocal, out float3 nearestLocal, out float t);
+        if (!math.isfinite(t)) return;
+
+        _t = t;
+
+      
+        float3 nearestWorld = math.transform(world, nearestLocal);
+        Vector3 p = _rb.position;
+        _rb.position = new Vector3(nearestWorld.x, p.y, nearestWorld.z);
+
+     
+        _forcedPosOnce = _rb.position;
+        _forceHoldFrames = 3; 
+    }
+
+    
+    bool _skipInitialSnapOnce = false;
+
+ 
+    public void MarkSpawnedBySpawner()
+    {
+        _skipInitialSnapOnce = true;
+    }
+
+
 }

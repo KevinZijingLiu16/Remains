@@ -1,5 +1,5 @@
 using UnityEngine;
-
+//NOT IN USE, For back up only
 public class CameraControl : MonoBehaviour
 {
     [Header("Vertical Follow (keep your original behavior)")]

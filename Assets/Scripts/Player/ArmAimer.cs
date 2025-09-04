@@ -4,26 +4,26 @@ using UnityEngine.InputSystem;
 public class ArmAimer : MonoBehaviour
 {
     [Header("Refs")]
-    public Transform leftArmPivot;
-    public Transform rightArmPivot;
-    public Camera cam;
+    [SerializeField] private Transform leftArmPivot;
+    [SerializeField] private Transform rightArmPivot;
+    [SerializeField] private Camera cam;
 
     [Header("Mapping (mouse Y -> Z)")]
-    [Tooltip("鼠标从屏幕底部到顶部映射到 [MinZ, MaxZ]（度）")]
-    public float minZ = -60f;
-    public float maxZ = 60f;
-    [Tooltip("反向映射：勾上则鼠标越高角度越小")]
-    public bool invert = false;
+  
+    [SerializeField] private float minZ = -60f;
+    [SerializeField] private float maxZ = 60f;
+
+    [SerializeField] private bool invert = false;
 
     [Header("Per-Arm Options")]
-    [Tooltip("右臂是否镜像（很多模型左右骨骼方向相反时需要勾上）")]
-    public bool mirrorRight = false;
+
+    [SerializeField] private bool mirrorRight = false;
 
     [Header("Smoothing")]
-    [Tooltip("度/秒；0 表示瞬时对齐")]
-    public float rotateSpeed = 720f;
 
-    // 记录初始的本地Z角，映射结果会在此基础上偏移
+    [SerializeField] private float rotateSpeed = 720f;
+
+ 
     float _baseLeftZ, _baseRightZ;
 
     void Awake()
@@ -51,13 +51,13 @@ public class ArmAimer : MonoBehaviour
 
         if (invert) t = 1f - t;
 
-        // 映射到目标角度（相对初始Z角的偏移）
+       
         float offsetZ = Mathf.Lerp(minZ, maxZ, t);
 
-        // 左臂
+     
         ApplyZ(leftArmPivot, _baseLeftZ + offsetZ, rotateSpeed);
 
-        // 右臂（可镜像）
+     
         float rightTarget = _baseRightZ + (mirrorRight ? -offsetZ : offsetZ);
         ApplyZ(rightArmPivot, rightTarget, rotateSpeed);
     }
