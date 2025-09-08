@@ -151,8 +151,8 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: ace5ff41592ffc64fbdc9df0a039bf1c, type: 2}
   - {fileID: 2100000, guid: e01bffe359a140c41966e80d57f8e103, type: 2}
+  - {fileID: 2100000, guid: 23bf550b27f54154981bd8bcfda638b6, type: 2}
   - {fileID: 2100000, guid: 7fa2635b84168d146b2979f827a16044, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
@@ -360,8 +360,8 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: ace5ff41592ffc64fbdc9df0a039bf1c, type: 2}
   - {fileID: 2100000, guid: e01bffe359a140c41966e80d57f8e103, type: 2}
+  - {fileID: 2100000, guid: 23bf550b27f54154981bd8bcfda638b6, type: 2}
   - {fileID: 2100000, guid: 7fa2635b84168d146b2979f827a16044, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
@@ -448,9 +448,9 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: e01bffe359a140c41966e80d57f8e103, type: 2}
-  - {fileID: 2100000, guid: 23bf550b27f54154981bd8bcfda638b6, type: 2}
+  - {fileID: 2100000, guid: 6ba876f461e48d04a82426bd9fc3b2d4, type: 2}
   - {fileID: 2100000, guid: 2eb65f779f6110a45a60346b9697e274, type: 2}
+  - {fileID: 2100000, guid: e01bffe359a140c41966e80d57f8e103, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -886,8 +886,8 @@ MonoBehaviour:
   movableLayers:
     serializedVersion: 2
     m_Bits: 256
-  groundCheckRadius: 5
-  groundCheckOffset: {x: 0, y: 0.1, z: 0}
+  groundCheckRadius: 1
+  groundCheckOffset: {x: 0, y: -0.7, z: 0}
   pushTransferRatio: 1
   pushMaxPerStep: 5
   pushSkin: 0.02

@@ -45359,18 +45359,6 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: 191968230455043965, guid: 09c7ba42738258a47bfaad25b5ab5ee7, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
-      value: 
-      objectReference: {fileID: 2100000, guid: e01bffe359a140c41966e80d57f8e103, type: 2}
-    - target: {fileID: 191968230455043965, guid: 09c7ba42738258a47bfaad25b5ab5ee7, type: 3}
-      propertyPath: 'm_Materials.Array.data[1]'
-      value: 
-      objectReference: {fileID: 2100000, guid: 23bf550b27f54154981bd8bcfda638b6, type: 2}
-    - target: {fileID: 191968230455043965, guid: 09c7ba42738258a47bfaad25b5ab5ee7, type: 3}
-      propertyPath: 'm_Materials.Array.data[2]'
-      value: 
-      objectReference: {fileID: 2100000, guid: 7fa2635b84168d146b2979f827a16044, type: 2}
     - target: {fileID: 1222422445896103442, guid: 09c7ba42738258a47bfaad25b5ab5ee7, type: 3}
       propertyPath: cam
       value: 
@@ -45379,18 +45367,6 @@ PrefabInstance:
       propertyPath: equipmentManager
       value: 
       objectReference: {fileID: 917235840}
-    - target: {fileID: 3328973706821983110, guid: 09c7ba42738258a47bfaad25b5ab5ee7, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
-      value: 
-      objectReference: {fileID: 2100000, guid: e01bffe359a140c41966e80d57f8e103, type: 2}
-    - target: {fileID: 3328973706821983110, guid: 09c7ba42738258a47bfaad25b5ab5ee7, type: 3}
-      propertyPath: 'm_Materials.Array.data[1]'
-      value: 
-      objectReference: {fileID: 2100000, guid: 23bf550b27f54154981bd8bcfda638b6, type: 2}
-    - target: {fileID: 3328973706821983110, guid: 09c7ba42738258a47bfaad25b5ab5ee7, type: 3}
-      propertyPath: 'm_Materials.Array.data[2]'
-      value: 
-      objectReference: {fileID: 2100000, guid: 7fa2635b84168d146b2979f827a16044, type: 2}
     - target: {fileID: 5221738718419502695, guid: 09c7ba42738258a47bfaad25b5ab5ee7, type: 3}
       propertyPath: m_LocalPosition.x
       value: -36.9
@@ -45439,18 +45415,6 @@ PrefabInstance:
       propertyPath: m_Name
       value: Player
       objectReference: {fileID: 0}
-    - target: {fileID: 9119221170956561110, guid: 09c7ba42738258a47bfaad25b5ab5ee7, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
-      value: 
-      objectReference: {fileID: 2100000, guid: 6ba876f461e48d04a82426bd9fc3b2d4, type: 2}
-    - target: {fileID: 9119221170956561110, guid: 09c7ba42738258a47bfaad25b5ab5ee7, type: 3}
-      propertyPath: 'm_Materials.Array.data[1]'
-      value: 
-      objectReference: {fileID: 2100000, guid: 2eb65f779f6110a45a60346b9697e274, type: 2}
-    - target: {fileID: 9119221170956561110, guid: 09c7ba42738258a47bfaad25b5ab5ee7, type: 3}
-      propertyPath: 'm_Materials.Array.data[2]'
-      value: 
-      objectReference: {fileID: 2100000, guid: e01bffe359a140c41966e80d57f8e103, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
