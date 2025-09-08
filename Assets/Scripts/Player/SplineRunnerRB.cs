@@ -622,5 +622,5 @@ public class SplineRunnerRB : MonoBehaviour
         _skipInitialSnapOnce = true;
     }
 
-
+    
 }
