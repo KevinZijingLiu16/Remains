@@ -15,11 +15,11 @@ MonoBehaviour:
   weaponDataArray:
   - weaponId: foam_spray
     weaponName: SprayFoamGun
-    weaponPrefab: {fileID: 3715300151227082631, guid: 642c42d919e4ec64599655f516962b15, type: 3}
+    weaponPrefab: {fileID: 2770117312750000886, guid: 882aca9836952e343bc710624deb601a, type: 3}
     weaponIcon: {fileID: 21300000, guid: 6da1895e1dfe81d468f6861697a93955, type: 3}
     equipPosition: {x: 0, y: 0, z: 0}
     equipRotation: {x: 0, y: 0, z: 180}
-    equipScale: {x: 2, y: 2, z: 2}
+    equipScale: {x: 100, y: 100, z: 100}
   - weaponId: air_blower
     weaponName: Vacuum
     weaponPrefab: {fileID: 8324549765745603757, guid: 58ac098a99178914fbcfb780fb2b55e1, type: 3}
