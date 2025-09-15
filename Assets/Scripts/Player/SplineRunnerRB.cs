@@ -60,6 +60,10 @@ public class SplineRunnerRB : MonoBehaviour
     [Tooltip("Flip interpolation speed (0 = instant, 1 = very slow).")]
     [Range(0f, 1f)] public float meshFlipLerp = 0.25f;
 
+    [Header("VFX")]
+    [SerializeField] private ParticleSystem moveDust;
+    [SerializeField, Range(0f, 1f)] private float minInputForDust = 0.1f;
+    [SerializeField] private bool requireGroundedForDust = true;
     void Awake()
     {
         _rb = GetComponent<Rigidbody>();
@@ -108,7 +112,6 @@ public class SplineRunnerRB : MonoBehaviour
 
     void FixedUpdate()
     {
-   
         if (_forceHoldFrames > 0)
         {
             _rb.MovePosition(_forcedPosOnce);
@@ -125,16 +128,14 @@ public class SplineRunnerRB : MonoBehaviour
 
         if (!math.isfinite(_approxLen) || _approxLen < 0.001f) RecomputeLength();
 
-     
         float dt = Time.fixedDeltaTime;
         float dir = Mathf.Sign(_cachedMove);
-        float speed = Mathf.Abs(_cachedMove) * moveSpeed * control;      // m/s
+        float speed = Mathf.Abs(_cachedMove) * moveSpeed * control; // m/s
         float dtAsT = (speed * dt) / math.max(0.001f, _approxLen);
         _t += dir * dtAsT;
         _t = loop ? Mathf.Repeat(_t, 1f) : Mathf.Clamp01(_t);
         if (!math.isfinite(_t)) _t = 0f;
 
-    
         float3 localPos = _spline.EvaluatePosition(_t);
         float3 localTan = _spline.EvaluateTangent(_t);
         float3 worldPos = math.transform(world, localPos);
@@ -148,54 +149,42 @@ public class SplineRunnerRB : MonoBehaviour
         }
         worldTan = math.normalize(worldTan);
 
-       
         Vector3 current = _rb.position;
         Vector3 splineXZ = new Vector3(worldPos.x, current.y, worldPos.z);
         Vector3 targetPos = decoupleYFromSpline ? splineXZ : (Vector3)worldPos;
 
-       
         Vector3 newPos = Vector3.Lerp(current, targetPos, Mathf.Clamp01(stick));
         if (!float.IsNaN(newPos.x))
         {
             Vector3 from = _rb.position;
             Vector3 to = newPos;
 
-          
             if (SweepAnyCollider(from, to, out Vector3 safe, out RaycastHit hit, obstacleLayers | movableLayers))
             {
-                
                 if (IsInLayerMask(hit.collider.gameObject.layer, movableLayers))
                 {
-                    
                     Vector3 remaining = to - safe;
-
-                   
                     Vector3 horizSplineFwdAtPlayer = (Vector3)worldTan;
                     horizSplineFwdAtPlayer.y = 0f;
                     if (horizSplineFwdAtPlayer.sqrMagnitude > 1e-6f) horizSplineFwdAtPlayer.Normalize();
-                    else horizSplineFwdAtPlayer = transform.forward; // ¶µµ×
+                    else horizSplineFwdAtPlayer = transform.forward;
 
-                    
                     Vector3 effectivePush = Vector3.Project(remaining, horizSplineFwdAtPlayer);
-                    float pushDist = Mathf.Clamp(effectivePush.magnitude * Mathf.Sign(Vector3.Dot(effectivePush, horizSplineFwdAtPlayer)) * pushTransferRatio,
-                                                 -pushMaxPerStep, pushMaxPerStep);
+                    float pushDist = Mathf.Clamp(
+                        effectivePush.magnitude * Mathf.Sign(Vector3.Dot(effectivePush, horizSplineFwdAtPlayer)) * pushTransferRatio,
+                        -pushMaxPerStep, pushMaxPerStep);
 
                     Rigidbody targetRB = hit.rigidbody;
                     if (targetRB != null && targetRB.isKinematic == false)
                     {
-                       
                         MoveMovableAlongSpline(targetRB, pushDist);
                     }
 
-                    
                     _rb.MovePosition(safe);
-
-                    
                     _t -= dir * dtAsT;
                 }
                 else
                 {
-                   
                     Vector3 remaining = to - safe;
                     Vector3 slide = SlideAlongNormal(remaining, hit.normal);
 
@@ -217,20 +206,18 @@ public class SplineRunnerRB : MonoBehaviour
             }
             else
             {
-                _rb.MovePosition(to); 
+                _rb.MovePosition(to);
             }
         }
 
-      
         if (_cachedJump && _grounded)
         {
             float g = -Physics.gravity.y;
             float vy = Mathf.Sqrt(2f * g * Mathf.Max(0.01f, jumpHeight));
-            var v = _rb.linearVelocity; v.y = vy; _rb.linearVelocity = v; 
+            var v = _rb.linearVelocity; v.y = vy; _rb.linearVelocity = v;
         }
         _cachedJump = false;
 
-     
         if (Mathf.Abs(_cachedMove) > 0.001f) _lastMovePositive = _cachedMove > 0f;
 
         Vector3 fwdPhysics = (Vector3)worldTan;
@@ -245,18 +232,22 @@ public class SplineRunnerRB : MonoBehaviour
         Quaternion rootLook = Quaternion.LookRotation(fwdPhysics, up);
         _rb.MoveRotation(Quaternion.Slerp(_rb.rotation, rootLook, _grounded ? 0.2f : 0.1f));
 
-       
         if (meshRoot != null)
         {
-            float targetYaw = (_lastMovePositive ? 0f : 180f) + meshFacingOffsetY;
+            float targetYaw = (_lastMovePositive ? 0f : -180f) + meshFacingOffsetY;
             Quaternion targetLocal = Quaternion.Euler(0f, targetYaw, 0f);
             meshRoot.localRotation = (meshFlipLerp <= 0f)
                 ? targetLocal
                 : Quaternion.Slerp(meshRoot.localRotation, targetLocal, meshFlipLerp);
         }
+
+     
+        bool inputMoving = Mathf.Abs(_cachedMove) > minInputForDust;
+        bool shouldPlayDust = inputMoving && (!requireGroundedForDust || _grounded);
+        SetMoveDust(shouldPlayDust);
     }
 
-   
+
     bool ValidateSpline(out Spline spline)
     {
         spline = null;
@@ -622,5 +613,11 @@ public class SplineRunnerRB : MonoBehaviour
         _skipInitialSnapOnce = true;
     }
 
-    
+    void SetMoveDust(bool active)
+    {
+        if (!moveDust) return;
+        moveDust.gameObject.SetActive(active);
+    }
+
+
 }
