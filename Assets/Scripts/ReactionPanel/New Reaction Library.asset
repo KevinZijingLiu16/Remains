@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4d16445ea41f3eb41ab9458e93b155a1, type: 3}
+  m_Name: New Reaction Library
+  m_EditorClassIdentifier: 
+  entries:
+  - key: Shy
+    sprite: {fileID: 21300000, guid: 11f818893dc53bb46a74a05983c87786, type: 3}
+  - key: Lightning
+    sprite: {fileID: 21300000, guid: 62687ca798f59aa41a5bf81e0b8001c1, type: 3}
+  - key: Love
+    sprite: {fileID: 21300000, guid: 69138f6b03c8c9c44bda0ff26e983dda, type: 3}
+  - key: Wink
+    sprite: {fileID: 21300000, guid: 440d1fb479cb8e8479b8091af6d5e6b8, type: 3}
+  - key: Unhappy
+    sprite: {fileID: 21300000, guid: 4a2763f365bb34c4a8c3da2293fba523, type: 3}
+  - key: Nopower
+    sprite: {fileID: 21300000, guid: 8ea0872eb0f08e84ab92c5225cdaa888, type: 3}
+  - key: Emo
+    sprite: {fileID: 21300000, guid: 8945b14d227cd1541bbbf5f00ac169d8, type: 3}
+  - key: Charging
+    sprite: {fileID: 21300000, guid: 9ff7b396456893a4abeabb32d1eecbd0, type: 3}

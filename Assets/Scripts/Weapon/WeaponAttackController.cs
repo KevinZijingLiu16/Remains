@@ -74,8 +74,7 @@ public class WeaponAttackController : MonoBehaviour
         switch (weapon.WeaponId)
         {
             case "foam_spray":
-                _currentPrimaryAttack = WeaponAttackFactory.CreateAttackBehavior(AttackType.FoamSpray);
-                _currentSecondaryAttack = null;
+                _currentPrimaryAttack = new EnhancedFoamSprayAttack();
                 break;
 
             case "air_blower":
