@@ -36,12 +36,40 @@ public class PlayerPower : MonoBehaviour
         if (timer >= updateInterval)
         {
             timer = 0f;
+
             if (_currentChosenZone != null)
                 ModifyPower(_currentChosenZone.GetPowerDelta());
         }
     }
 
-    
+    private void ForceCheckCurrentZones()
+    {
+  
+        var colliders = Physics.OverlapSphere(transform.position, 0.1f);
+        var foundZones = new HashSet<IPowerZoneEffect>();
+
+        foreach (var col in colliders)
+        {
+            if (col.isTrigger)
+            {
+                var zone = col.GetComponent<IPowerZoneEffect>();
+                if (zone != null)
+                {
+                    foundZones.Add(zone);
+                }
+            }
+        }
+
+       
+        _activeZones.Clear();
+        foreach (var zone in foundZones)
+        {
+            _activeZones.Add(zone);
+        }
+
+        ChooseCurrentZone();
+    }
+
     public void EnterZone(IPowerZoneEffect zone)
     {
         if (zone == null) return;

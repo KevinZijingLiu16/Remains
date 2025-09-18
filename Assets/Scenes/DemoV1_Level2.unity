@@ -409,7 +409,7 @@ Transform:
   m_GameObject: {fileID: 469093726}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: -0.74139047, z: 0, w: 0.67107385}
-  m_LocalPosition: {x: -24.164272, y: 4.6000004, z: -40.62884}
+  m_LocalPosition: {x: -24.313251, y: 3.9, z: -39.136257}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1129,6 +1129,17 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 5221738718419502695, guid: 09c7ba42738258a47bfaad25b5ab5ee7, type: 3}
   m_PrefabInstance: {fileID: 8965830803784027773}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1112064380 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 498878050004866769, guid: 09c7ba42738258a47bfaad25b5ab5ee7, type: 3}
+  m_PrefabInstance: {fileID: 8965830803784027773}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 364159d9022a2984aa3df7718d95d198, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1160510444
 GameObject:
   m_ObjectHideFlags: 0
@@ -1891,6 +1902,10 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 1112064376}
     - target: {fileID: 5362773886868464198, guid: 022e02960468a4f4c8fdb6778bddf78e, type: 3}
+      propertyPath: splineTracker
+      value: 
+      objectReference: {fileID: 1112064380}
+    - target: {fileID: 5362773886868464198, guid: 022e02960468a4f4c8fdb6778bddf78e, type: 3}
       propertyPath: playerTransform
       value: 
       objectReference: {fileID: 1112064379}
@@ -1904,11 +1919,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7890115760680017022, guid: 022e02960468a4f4c8fdb6778bddf78e, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 3.2000003
+      value: 2.5
       objectReference: {fileID: 0}
     - target: {fileID: 7890115760680017022, guid: 022e02960468a4f4c8fdb6778bddf78e, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 0.0000009476207
+      value: 1.5000017
       objectReference: {fileID: 0}
     - target: {fileID: 8282137458091882016, guid: 022e02960468a4f4c8fdb6778bddf78e, type: 3}
       propertyPath: m_LocalPosition.x
@@ -1963,6 +1978,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 498878050004866769, guid: 09c7ba42738258a47bfaad25b5ab5ee7, type: 3}
+      propertyPath: splineContainer
+      value: 
+      objectReference: {fileID: 891642388}
     - target: {fileID: 1222422445896103442, guid: 09c7ba42738258a47bfaad25b5ab5ee7, type: 3}
       propertyPath: cam
       value: 

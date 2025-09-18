@@ -13,7 +13,7 @@ public class PowerUI : MonoBehaviour
             Debug.LogWarning("[PowerUI] No PlayerPower found in scene.");
             return;
         }
-       
+        powerSlider.interactable = false;
         playerPower.OnPowerChanged += UpdateUI;
 
   

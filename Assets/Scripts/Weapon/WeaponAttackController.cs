@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 public class WeaponAttackController : MonoBehaviour
@@ -15,6 +16,7 @@ public class WeaponAttackController : MonoBehaviour
     private bool _primaryAttackActive = false;
     private bool _secondaryAttackActive = false;
 
+    
     void Start()
     {
         InitializeSystem();
@@ -74,7 +76,8 @@ public class WeaponAttackController : MonoBehaviour
         switch (weapon.WeaponId)
         {
             case "foam_spray":
-                _currentPrimaryAttack = new EnhancedFoamSprayAttack();
+                _currentPrimaryAttack = new StickyFoamSprayAttack();
+                _currentSecondaryAttack = new EnhancedFoamSprayAttack(); 
                 break;
 
             case "air_blower":

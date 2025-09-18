@@ -10,8 +10,8 @@ public class EnhancedFoamSprayAttack : IWeaponAttackBehavior
     [Header("Foam Spawn Settings")]
     public GameObject foamPlatformPrefab; 
     public float foamSpawnInterval = 0.1f; 
-    public int foamBurstCount = 50; 
-    public float burstSpread = 0.5f;
+    public int foamBurstCount = 100; 
+    public float burstSpread = 0f;
 
     [Header("Foam Launch Settings")]
     public float minLaunchSpeed = 3f; 
@@ -157,7 +157,7 @@ public class EnhancedFoamSprayAttack : IWeaponAttackBehavior
             shootDirection = Quaternion.AngleAxis(spreadAngle, weaponTransform.up) * weaponTransform.forward;
 
            
-            Vector3 sideOffset = weaponTransform.right * (spreadAngle * 0.01f); // ÇáÎ¢µÄ²àÏòÆ«ÒÆ
+            Vector3 sideOffset = weaponTransform.right * (spreadAngle * 0.01f); 
             spawnPosition = baseSpawnPos + sideOffset;
         }
 
