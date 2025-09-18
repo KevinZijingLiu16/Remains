@@ -1,15 +1,13 @@
-using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using UnityEngine.Splines;
 
+/// <summary>
+/// 重构后的玩家控制器，专注于输入处理和游戏逻辑协调
+/// 修复了碰撞时被推转的问题
+/// </summary>
+[RequireComponent(typeof(Rigidbody), typeof(SplineObjectMover))]
 public class SplineRunnerRB : MonoBehaviour
 {
-    [Header("Spline Path")]
-    public SplineContainer splineContainer;
-    [SerializeField] private bool loop = true;
-    [Range(0.01f, 1f)] public float stick = 0.9f;   // 0.85~1
-
     [Header("Movement")]
     [SerializeField] private float moveSpeed = 6f;
     [Tooltip("Air control factor (0~1). 0 = no control in air, 1 = same as on ground.")]
@@ -19,57 +17,63 @@ public class SplineRunnerRB : MonoBehaviour
 
     [Header("Jump & Ground")]
     [SerializeField] private float jumpHeight = 2f;
-    [SerializeField] private LayerMask groundLayers = ~0;     
-    [SerializeField] private LayerMask obstacleLayers = ~0;  
-   
-    [SerializeField] private LayerMask movableLayers = 0;    
+    [SerializeField] private LayerMask groundLayers = ~0;
     [SerializeField] private float groundCheckRadius = 0.25f;
     [Tooltip("Offset for the ground check sphere (world space). Typically slightly upward to avoid false negatives.")]
     [SerializeField] private Vector3 groundCheckOffset = new Vector3(0f, 0.1f, 0f);
 
-    [Header("Push Movable Settings")]
-    [Tooltip("Ratio of movement transferred to movable rigidbodies. 1 = full transfer.")]
-    [SerializeField] private float pushTransferRatio = 1.0f;
-    [Tooltip("Maximum push distance per frame (m). Prevents excessive displacement.")]
-    [SerializeField] private float pushMaxPerStep = 1.0f;
-    [Tooltip("Push skin (m). Small offset to avoid overlapping with other colliders during pushing.")]
-    [SerializeField] private float pushSkin = 0.02f;
+    [Header("Rotation Stability")]
+    [SerializeField] private bool useStrongRotationCorrection = true;
+    [SerializeField] private float maxRotationDeviation = 45f;
+    [SerializeField] private float normalRotationSpeed = 0.3f;
+    [SerializeField] private float correctionRotationSpeed = 1f;
+    [SerializeField] private bool resetAngularVelocityOnCollision = true;
 
     [Header("Input (New Input System)")]
     public InputActionProperty moveAction;
     public InputActionProperty jumpAction;
-
-    [Header("Anti Jitter")]
-
-    [SerializeField] private bool decoupleYFromSpline = true;
-
-    [SerializeField] private bool faceHorizontalOnly = true;
-
-    Rigidbody _rb;
-    Spline _spline;
-    float _t;                  // 0..1
-    float _approxLen = 1f;
-    float _cachedMove;
-    bool _cachedJump;
-    bool _grounded;
-    bool _lastMovePositive = true;
 
     [Header("Visual (mesh only)")]
     [SerializeField] private Transform meshRoot;
     [SerializeField] private float meshFacingOffsetY = 0f;
     [Tooltip("Flip interpolation speed (0 = instant, 1 = very slow).")]
     [Range(0f, 1f)] public float meshFlipLerp = 0.25f;
+    [SerializeField] private bool faceHorizontalOnly = true;
 
     [Header("VFX")]
     [SerializeField] private ParticleSystem moveDust;
     [SerializeField, Range(0f, 1f)] private float minInputForDust = 0.1f;
     [SerializeField] private bool requireGroundedForDust = true;
+
+    // 组件引用
+    private Rigidbody _rb;
+    private SplineObjectMover _splineMover;
+    private SplineTracker _splineTracker;
+
+    // 状态变量
+    private float _t = 0f;                  // 当前在spline上的位置 (0..1)
+    private float _cachedMove;
+    private bool _cachedJump;
+    private bool _grounded;
+    private bool _lastMovePositive = true;
+
+    // 强制位置保持机制 (用于spawner等特殊情况)
+    private int _forceHoldFrames = 0;
+    private Vector3 _forcedPosOnce;
+    private bool _skipInitialSnapOnce = false;
+
+    #region Unity Lifecycle
+
     void Awake()
     {
         _rb = GetComponent<Rigidbody>();
+        _splineMover = GetComponent<SplineObjectMover>();
+        _splineTracker = GetComponent<SplineTracker>();
+
+        // 配置刚体 - 只锁定X和Z轴旋转，保留Y轴用于转向
         _rb.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ;
         _rb.interpolation = RigidbodyInterpolation.Interpolate;
-        _rb.collisionDetectionMode = CollisionDetectionMode.Continuous; 
+        _rb.collisionDetectionMode = CollisionDetectionMode.Continuous;
     }
 
     void OnEnable()
@@ -77,24 +81,25 @@ public class SplineRunnerRB : MonoBehaviour
         moveAction.action?.Enable();
         jumpAction.action?.Enable();
 
-        if (!ValidateSpline(out _spline))
+        if (!_splineTracker.IsValid())
         {
-            Debug.LogWarning("[SplineRunnerRB] SplineContainer 未设置或样条点数<2。");
+            Debug.LogWarning("[SplineRunnerRB] SplineTracker 无效，组件已禁用。");
             enabled = false;
             return;
         }
-        RecomputeLength();
-        RecomputeLength();
+
+        // 重新计算spline长度
+        _splineTracker.RecomputeLength();
+
+        // 根据需要进行初始快照
         if (_skipInitialSnapOnce)
         {
-           
-            _skipInitialSnapOnce = false;  
+            _skipInitialSnapOnce = false;
         }
         else
         {
             SnapToNearestOnSpline();
         }
-
     }
 
     void OnDisable()
@@ -105,6 +110,7 @@ public class SplineRunnerRB : MonoBehaviour
 
     void Update()
     {
+        // 缓存输入
         _cachedMove = moveAction.action != null ? moveAction.action.ReadValue<float>() : 0f;
         if (jumpAction.action != null && jumpAction.action.WasPressedThisFrame())
             _cachedJump = true;
@@ -112,6 +118,7 @@ public class SplineRunnerRB : MonoBehaviour
 
     void FixedUpdate()
     {
+        // 处理强制位置保持
         if (_forceHoldFrames > 0)
         {
             _rb.MovePosition(_forcedPosOnce);
@@ -119,119 +126,117 @@ public class SplineRunnerRB : MonoBehaviour
             return;
         }
 
-        if (!ValidateSpline(out _spline)) return;
+        if (!_splineTracker.IsValid()) return;
 
-        float4x4 world = (float4x4)splineContainer.transform.localToWorldMatrix;
-
+        // 更新地面检测
         _grounded = IsGrounded();
+
+        // 计算控制系数（空中控制）
         float control = _grounded ? 1f : Mathf.Clamp01(airControl);
 
-        if (!math.isfinite(_approxLen) || _approxLen < 0.001f) RecomputeLength();
+        // 处理spline移动
+        HandleSplineMovement(control);
 
+        // 处理跳跃
+        HandleJump();
+
+        // 更新朝向（重点修改的部分）
+        UpdateOrientationWithStabilization();
+
+        // 更新视觉效果
+        UpdateVisualEffects();
+    }
+
+    #endregion
+
+    #region Movement Logic
+
+    private void HandleSplineMovement(float controlFactor)
+    {
         float dt = Time.fixedDeltaTime;
-        float dir = Mathf.Sign(_cachedMove);
-        float speed = Mathf.Abs(_cachedMove) * moveSpeed * control; // m/s
-        float dtAsT = (speed * dt) / math.max(0.001f, _approxLen);
-        _t += dir * dtAsT;
-        _t = loop ? Mathf.Repeat(_t, 1f) : Mathf.Clamp01(_t);
-        if (!math.isfinite(_t)) _t = 0f;
+        float direction = Mathf.Sign(_cachedMove);
+        float speed = Mathf.Abs(_cachedMove) * moveSpeed * controlFactor;
 
-        float3 localPos = _spline.EvaluatePosition(_t);
-        float3 localTan = _spline.EvaluateTangent(_t);
-        float3 worldPos = math.transform(world, localPos);
-        float3 worldTan = math.rotate(world, localTan);
-        if (math.lengthsq(worldTan) < 1e-6f)
+        // 计算新的t值
+        float newT = _splineTracker.MoveAlongSpline(_t, speed, dt, direction);
+
+        // 尝试移动到新位置
+        var moveResult = _splineMover.MoveToSplinePosition(_rb, newT, _t, direction);
+
+        if (moveResult.success)
         {
-            float t2 = loop ? math.frac(_t + 0.001f) : math.clamp(_t + 0.001f, 0f, 1f);
-            float3 lp2 = _spline.EvaluatePosition(t2);
-            float3 wp2 = math.transform(world, lp2);
-            worldTan = wp2 - worldPos;
-        }
-        worldTan = math.normalize(worldTan);
-
-        Vector3 current = _rb.position;
-        Vector3 splineXZ = new Vector3(worldPos.x, current.y, worldPos.z);
-        Vector3 targetPos = decoupleYFromSpline ? splineXZ : (Vector3)worldPos;
-
-        Vector3 newPos = Vector3.Lerp(current, targetPos, Mathf.Clamp01(stick));
-        if (!float.IsNaN(newPos.x))
-        {
-            Vector3 from = _rb.position;
-            Vector3 to = newPos;
-
-            if (SweepAnyCollider(from, to, out Vector3 safe, out RaycastHit hit, obstacleLayers | movableLayers))
-            {
-                if (IsInLayerMask(hit.collider.gameObject.layer, movableLayers))
-                {
-                    Vector3 remaining = to - safe;
-                    Vector3 horizSplineFwdAtPlayer = (Vector3)worldTan;
-                    horizSplineFwdAtPlayer.y = 0f;
-                    if (horizSplineFwdAtPlayer.sqrMagnitude > 1e-6f) horizSplineFwdAtPlayer.Normalize();
-                    else horizSplineFwdAtPlayer = transform.forward;
-
-                    Vector3 effectivePush = Vector3.Project(remaining, horizSplineFwdAtPlayer);
-                    float pushDist = Mathf.Clamp(
-                        effectivePush.magnitude * Mathf.Sign(Vector3.Dot(effectivePush, horizSplineFwdAtPlayer)) * pushTransferRatio,
-                        -pushMaxPerStep, pushMaxPerStep);
-
-                    Rigidbody targetRB = hit.rigidbody;
-                    if (targetRB != null && targetRB.isKinematic == false)
-                    {
-                        MoveMovableAlongSpline(targetRB, pushDist);
-                    }
-
-                    _rb.MovePosition(safe);
-                    _t -= dir * dtAsT;
-                }
-                else
-                {
-                    Vector3 remaining = to - safe;
-                    Vector3 slide = SlideAlongNormal(remaining, hit.normal);
-
-                    if (slide.sqrMagnitude > 1e-6f)
-                    {
-                        Vector3 slideTarget = safe + slide;
-                        if (SweepAnyCollider(safe, slideTarget, out Vector3 safe2, out _, obstacleLayers | movableLayers))
-                            _rb.MovePosition(safe2);
-                        else
-                            _rb.MovePosition(slideTarget);
-                    }
-                    else
-                    {
-                        _rb.MovePosition(safe);
-                    }
-
-                    _t -= dir * dtAsT;
-                }
-            }
-            else
-            {
-                _rb.MovePosition(to);
-            }
+            _t = moveResult.finalT;
         }
 
+        // 记录移动方向用于视觉更新
+        if (Mathf.Abs(_cachedMove) > 0.001f)
+            _lastMovePositive = _cachedMove > 0f;
+    }
+
+    private void HandleJump()
+    {
         if (_cachedJump && _grounded)
         {
             float g = -Physics.gravity.y;
             float vy = Mathf.Sqrt(2f * g * Mathf.Max(0.01f, jumpHeight));
-            var v = _rb.linearVelocity; v.y = vy; _rb.linearVelocity = v;
+            var v = _rb.linearVelocity;
+            v.y = vy;
+            _rb.linearVelocity = v;
         }
         _cachedJump = false;
+    }
 
-        if (Mathf.Abs(_cachedMove) > 0.001f) _lastMovePositive = _cachedMove > 0f;
+    /// <summary>
+    /// 带有稳定化功能的旋转更新 - 防止碰撞时被推转
+    /// </summary>
+    private void UpdateOrientationWithStabilization()
+    {
+        Vector3 splineTangent = _splineTracker.GetWorldTangentAtT(_t);
 
-        Vector3 fwdPhysics = (Vector3)worldTan;
         if (faceHorizontalOnly)
         {
-            fwdPhysics.y = 0f;
-            if (fwdPhysics.sqrMagnitude < 1e-8f) fwdPhysics = transform.forward;
-            else fwdPhysics.Normalize();
+            splineTangent.y = 0f;
+            if (splineTangent.sqrMagnitude < 1e-8f)
+                splineTangent = transform.forward;
+            else
+                splineTangent.Normalize();
         }
 
-        Vector3 up = Vector3.up;
-        Quaternion rootLook = Quaternion.LookRotation(fwdPhysics, up);
-        _rb.MoveRotation(Quaternion.Slerp(_rb.rotation, rootLook, _grounded ? 0.2f : 0.1f));
+        Quaternion targetRotation = Quaternion.LookRotation(splineTangent, Vector3.up);
 
+        if (useStrongRotationCorrection)
+        {
+            // 计算当前旋转与目标旋转的角度差
+            float angleDiff = Quaternion.Angle(_rb.rotation, targetRotation);
+
+            float lerpSpeed;
+            if (angleDiff > maxRotationDeviation)
+            {
+                // 偏差太大，强制快速纠正
+                lerpSpeed = correctionRotationSpeed;
+
+                // 清除角速度以防止继续旋转
+                _rb.angularVelocity = Vector3.zero;
+            }
+            else
+            {
+                // 正常情况下的平滑旋转
+                lerpSpeed = _grounded ? normalRotationSpeed : normalRotationSpeed * 0.5f;
+            }
+
+            _rb.MoveRotation(Quaternion.Slerp(_rb.rotation, targetRotation, lerpSpeed));
+        }
+        else
+        {
+            // 原来的逻辑
+            float lerpSpeed = _grounded ? 0.2f : 0.1f;
+            _rb.MoveRotation(Quaternion.Slerp(_rb.rotation, targetRotation, lerpSpeed));
+        }
+    }
+
+    private void UpdateVisualEffects()
+    {
+        // 更新mesh朝向
         if (meshRoot != null)
         {
             float targetYaw = (_lastMovePositive ? 0f : -180f) + meshFacingOffsetY;
@@ -241,51 +246,164 @@ public class SplineRunnerRB : MonoBehaviour
                 : Quaternion.Slerp(meshRoot.localRotation, targetLocal, meshFlipLerp);
         }
 
-     
+        // 更新粒子效果
         bool inputMoving = Mathf.Abs(_cachedMove) > minInputForDust;
         bool shouldPlayDust = inputMoving && (!requireGroundedForDust || _grounded);
         SetMoveDust(shouldPlayDust);
     }
 
+    #endregion
 
-    bool ValidateSpline(out Spline spline)
+    #region Collision Handling
+
+    /// <summary>
+    /// 碰撞开始时重置旋转状态
+    /// </summary>
+    void OnCollisionEnter(Collision collision)
     {
-        spline = null;
-        if (!splineContainer) return false;
-        spline = splineContainer.Spline;
-        return spline != null && spline.Count >= 2;
+        if (resetAngularVelocityOnCollision && collision.rigidbody != null)
+        {
+            // 立即停止角速度
+            _rb.angularVelocity = Vector3.zero;
+
+            // 如果偏差很大，立即纠正旋转
+            Vector3 splineTangent = _splineTracker.GetWorldTangentAtT(_t);
+            if (faceHorizontalOnly)
+            {
+                splineTangent.y = 0f;
+                if (splineTangent.sqrMagnitude > 1e-8f) splineTangent.Normalize();
+            }
+
+            if (splineTangent.sqrMagnitude > 0.1f)
+            {
+                Quaternion correctRotation = Quaternion.LookRotation(splineTangent, Vector3.up);
+                float angleDiff = Quaternion.Angle(_rb.rotation, correctRotation);
+
+                if (angleDiff > maxRotationDeviation * 0.5f)
+                {
+                    _rb.MoveRotation(correctRotation);
+                }
+            }
+        }
     }
 
-    void RecomputeLength()
+    /// <summary>
+    /// 持续碰撞时保持旋转稳定
+    /// </summary>
+    void OnCollisionStay(Collision collision)
     {
-        if (!ValidateSpline(out _spline)) return;
-        float4x4 world = (float4x4)splineContainer.transform.localToWorldMatrix;
-        _approxLen = math.max(0.1f, SplineUtility.CalculateLength(_spline, world));
+        if (resetAngularVelocityOnCollision && collision.rigidbody != null)
+        {
+            // 在持续接触期间保持角速度为零
+            _rb.angularVelocity = Vector3.zero;
+        }
     }
 
-    void SnapToNearestOnSpline()
-    {
-        if (!ValidateSpline(out _spline)) return;
-        float4x4 world = (float4x4)splineContainer.transform.localToWorldMatrix;
-        float4x4 worldToLocal = math.inverse(world);
+    #endregion
 
-        float3 posLocal = math.transform(worldToLocal, (float3)_rb.position);
-        SplineUtility.GetNearestPoint(_spline, posLocal, out float3 nearestLocal, out float t);
-        _t = math.isfinite(t) ? t : 0f;
-        float3 nearestWorld = math.transform(world, nearestLocal);
+    #region Ground Detection
 
-        Vector3 snap = decoupleYFromSpline
-            ? new Vector3(nearestWorld.x, _rb.position.y, nearestWorld.z)
-            : (Vector3)nearestWorld;
-
-        if (!float.IsNaN(snap.x)) _rb.position = snap;
-    }
-
-    bool IsGrounded()
+    private bool IsGrounded()
     {
         Vector3 origin = _rb.worldCenterOfMass + groundCheckOffset;
         return Physics.CheckSphere(origin, groundCheckRadius, groundLayers, QueryTriggerInteraction.Ignore);
     }
+
+    #endregion
+
+    #region Public Interface
+
+    /// <summary>
+    /// 获取当前在spline上的t值
+    /// </summary>
+    public float GetCurrentT()
+    {
+        return _t;
+    }
+
+    /// <summary>
+    /// 重新将对象快照到指定世界坐标对应的spline位置
+    /// </summary>
+    public void ResnapToWorldPosition(Vector3 worldPos)
+    {
+        if (!_splineTracker.IsValid()) return;
+
+        var projection = _splineTracker.ProjectWorldPointToSpline(worldPos);
+        if (!projection.isValid) return;
+
+        _t = projection.t;
+
+        Vector3 snapPos = _splineTracker.SnapToNearestPoint(_rb.position, true);
+        if (!float.IsNaN(snapPos.x))
+        {
+            _rb.position = snapPos;
+            _forcedPosOnce = _rb.position;
+            _forceHoldFrames = 3; // 保持3帧
+        }
+    }
+
+    /// <summary>
+    /// 标记此对象由spawner生成，跳过初始快照
+    /// </summary>
+    public void MarkSpawnedBySpawner()
+    {
+        _skipInitialSnapOnce = true;
+    }
+
+    /// <summary>
+    /// 手动快照到spline上最近的点
+    /// </summary>
+    public void SnapToNearestOnSpline()
+    {
+        if (!_splineTracker.IsValid()) return;
+
+        var projection = _splineTracker.ProjectWorldPointToSpline(_rb.position);
+        if (!projection.isValid) return;
+
+        _t = projection.t;
+        Vector3 snapPos = _splineTracker.SnapToNearestPoint(_rb.position, true);
+        if (!float.IsNaN(snapPos.x))
+        {
+            _rb.position = snapPos;
+        }
+    }
+
+    /// <summary>
+    /// 强制重置旋转到正确方向（调试用）
+    /// </summary>
+    [ContextMenu("Force Correct Rotation")]
+    public void ForceCorrectRotation()
+    {
+        if (!_splineTracker.IsValid()) return;
+
+        Vector3 splineTangent = _splineTracker.GetWorldTangentAtT(_t);
+        if (faceHorizontalOnly)
+        {
+            splineTangent.y = 0f;
+            splineTangent.Normalize();
+        }
+
+        if (splineTangent.sqrMagnitude > 0.1f)
+        {
+            Quaternion correctRotation = Quaternion.LookRotation(splineTangent, Vector3.up);
+            _rb.MoveRotation(correctRotation);
+            _rb.angularVelocity = Vector3.zero;
+        }
+    }
+
+    #endregion
+
+    #region Utility
+
+    private void SetMoveDust(bool active)
+    {
+        if (!moveDust) return;
+        moveDust.gameObject.SetActive(active);
+    }
+
+    #endregion
+
+    #region Gizmos
 
 #if UNITY_EDITOR
     void OnDrawGizmosSelected()
@@ -294,330 +412,24 @@ public class SplineRunnerRB : MonoBehaviour
         {
             Gizmos.color = Color.magenta;
             Gizmos.DrawWireSphere(_rb.worldCenterOfMass + groundCheckOffset, groundCheckRadius);
+
+            // 显示当前朝向
+            Gizmos.color = Color.blue;
+            Gizmos.DrawRay(transform.position, transform.forward * 2f);
+
+            // 如果有splineTracker，显示应该朝向的方向
+            if (_splineTracker != null && _splineTracker.IsValid())
+            {
+                Vector3 splineDir = _splineTracker.GetWorldTangentAtT(_t);
+                if (faceHorizontalOnly) splineDir.y = 0f;
+                splineDir.Normalize();
+
+                Gizmos.color = Color.green;
+                Gizmos.DrawRay(transform.position, splineDir * 2f);
+            }
         }
     }
 #endif
 
-  
-    bool _warnedNoColliderOnce = false;
-
- 
-    bool GetCapsule(out Vector3 p1, out Vector3 p2, out float radius)
-    {
-        p1 = p2 = default; radius = 0f;
-        var cap = GetComponentInChildren<CapsuleCollider>();
-        if (!cap) return false;
-
-        Vector3 center = cap.transform.TransformPoint(cap.center);
-        Vector3 up = cap.transform.up;
-        Vector3 s = cap.transform.lossyScale;
-
-        float r = cap.radius * Mathf.Max(Mathf.Abs(s.x), Mathf.Abs(s.z));
-        float h = Mathf.Max(cap.height * Mathf.Abs(s.y), r * 2f);
-        float half = h * 0.5f - r;
-
-        p1 = center + up * half;
-        p2 = center - up * half;
-        radius = r;
-        return true;
-    }
-
- 
-    bool GetSphere(out Vector3 center, out float radius)
-    {
-        center = default; radius = 0f;
-        var sph = GetComponentInChildren<SphereCollider>();
-        if (!sph) return false;
-
-        Vector3 s = sph.transform.lossyScale;
-        float maxScale = Mathf.Max(Mathf.Abs(s.x), Mathf.Abs(s.y), Mathf.Abs(s.z));
-        radius = sph.radius * maxScale;
-        center = sph.transform.TransformPoint(sph.center);
-        return true;
-    }
-
-   
-    bool GetBox(out Vector3 center, out Vector3 halfExtents, out Quaternion orientation)
-    {
-        center = default; halfExtents = default; orientation = Quaternion.identity;
-        var box = GetComponentInChildren<BoxCollider>();
-        if (!box) return false;
-
-        Vector3 s = box.transform.lossyScale;
-        Vector3 sizeWS = new Vector3(
-            box.size.x * Mathf.Abs(s.x),
-            box.size.y * Mathf.Abs(s.y),
-            box.size.z * Mathf.Abs(s.z)
-        );
-        halfExtents = sizeWS * 0.5f;
-        center = box.transform.TransformPoint(box.center);
-        orientation = box.transform.rotation;
-        return true;
-    }
-
-   
-    bool SweepAnyCollider(Vector3 from, Vector3 to, out Vector3 safePos, out RaycastHit hit, int layerMask)
-    {
-        safePos = to; hit = default;
-
-        Vector3 delta = to - from;
-        float dist = delta.magnitude;
-        if (dist < 1e-5f) return false;
-
-        Vector3 dir = delta / dist;
-        bool any = false;
-
-    
-        Vector3 preOffset = from - _rb.position;
-
-        if (GetCapsule(out var c1, out var c2, out var cr))
-        {
-            any = true;
-            c1 += preOffset; c2 += preOffset;
-
-            if (Physics.CapsuleCast(c1, c2, cr, dir, out hit, dist, layerMask, QueryTriggerInteraction.Ignore))
-            {
-                float skin = 0.02f;
-                safePos = from + dir * Mathf.Max(hit.distance - skin, 0f);
-                return true;
-            }
-            return false;
-        }
-
-        if (GetSphere(out var sc, out var sr))
-        {
-            any = true;
-            sc += preOffset;
-
-            if (Physics.SphereCast(sc, sr, dir, out hit, dist, layerMask, QueryTriggerInteraction.Ignore))
-            {
-                float skin = 0.02f;
-                safePos = from + dir * Mathf.Max(hit.distance - skin, 0f);
-                return true;
-            }
-            return false;
-        }
-
-        if (GetBox(out var bc, out var bhe, out var brot))
-        {
-            any = true;
-            bc += preOffset;
-
-            if (Physics.BoxCast(bc, bhe, dir, out hit, brot, dist, layerMask, QueryTriggerInteraction.Ignore))
-            {
-                float skin = 0.02f;
-                safePos = from + dir * Mathf.Max(hit.distance - skin, 0f);
-                return true;
-            }
-            return false;
-        }
-
-        if (!any && !_warnedNoColliderOnce)
-        {
-            _warnedNoColliderOnce = true;
-            Debug.LogWarning("[SplineRunnerRB] No Collider found on self or children. Sweep is disabled -> risk of tunneling.");
-        }
-
-        return false;
-    }
-
-    
-    Vector3 SlideAlongNormal(Vector3 desiredDelta, Vector3 hitNormal)
-    {
-        return Vector3.ProjectOnPlane(desiredDelta, hitNormal);
-    }
-
-   
-    void MoveMovableAlongSpline(Rigidbody targetRB, float pushDistance)
-    {
-        if (!ValidateSpline(out var spl) || Mathf.Abs(pushDistance) < 1e-6f) return;
-
-     
-        float4x4 world = (float4x4)splineContainer.transform.localToWorldMatrix;
-        float4x4 worldToLocal = math.inverse(world);
-
-        Vector3 objPos = targetRB.position;
-        float3 objPosLocal = math.transform(worldToLocal, (float3)objPos);
-        SplineUtility.GetNearestPoint(spl, objPosLocal, out float3 nearestLocal, out float tObj);
-
-        if (!math.isfinite(tObj)) return;
-
-       
-        float approxLen = math.max(0.1f, _approxLen);
-        float dt = pushDistance / approxLen;
-        float tTarget = loop ? Mathf.Repeat(tObj + dt, 1f) : Mathf.Clamp01(tObj + dt);
-
-      
-        float3 worldOnSpline = math.transform(world, spl.EvaluatePosition(tTarget));
-        Vector3 objTarget = new Vector3(worldOnSpline.x, objPos.y, worldOnSpline.z);
-
-      
-        if (SweepForBody(targetRB, objPos, objTarget, out Vector3 safe, out RaycastHit _,
-                         obstacleLayers | movableLayers))
-        {
-            targetRB.MovePosition(safe);
-        }
-        else
-        {
-            targetRB.MovePosition(objTarget);
-        }
-    }
-
-
-    bool SweepForBody(Rigidbody body, Vector3 from, Vector3 to, out Vector3 safePos, out RaycastHit hit, int mask)
-    {
-        safePos = to; hit = default;
-        Vector3 delta = to - from;
-        float dist = delta.magnitude;
-        if (dist < 1e-5f) return false;
-
-        Vector3 dir = delta / dist;
-        bool any = false;
-        Vector3 preOffset = from - body.position;
-
-     
-        if (GetCapsule(body.transform, out var c1, out var c2, out var cr))
-        {
-            any = true;
-            c1 += preOffset; c2 += preOffset;
-            if (Physics.CapsuleCast(c1, c2, cr, dir, out hit, dist, mask, QueryTriggerInteraction.Ignore))
-            {
-                safePos = from + dir * Mathf.Max(hit.distance - pushSkin, 0f);
-                return true;
-            }
-            return false;
-        }
-
-   
-        if (GetSphere(body.transform, out var sc, out var sr))
-        {
-            any = true; sc += preOffset;
-            if (Physics.SphereCast(sc, sr, dir, out hit, dist, mask, QueryTriggerInteraction.Ignore))
-            {
-                safePos = from + dir * Mathf.Max(hit.distance - pushSkin, 0f);
-                return true;
-            }
-            return false;
-        }
-
-       
-        if (GetBox(body.transform, out var bc, out var bhe, out var brot))
-        {
-            any = true; bc += preOffset;
-            if (Physics.BoxCast(bc, bhe, dir, out hit, brot, dist, mask, QueryTriggerInteraction.Ignore))
-            {
-                safePos = from + dir * Mathf.Max(hit.distance - pushSkin, 0f);
-                return true;
-            }
-            return false;
-        }
-
-      
-        return false;
-    }
-
- 
-    bool GetCapsule(Transform root, out Vector3 p1, out Vector3 p2, out float radius)
-    {
-        p1 = p2 = default; radius = 0f;
-        var cap = root.GetComponentInChildren<CapsuleCollider>();
-        if (!cap) return false;
-
-        Vector3 center = cap.transform.TransformPoint(cap.center);
-        Vector3 up = cap.transform.up;
-        Vector3 s = cap.transform.lossyScale;
-
-        float r = cap.radius * Mathf.Max(Mathf.Abs(s.x), Mathf.Abs(s.z));
-        float h = Mathf.Max(cap.height * Mathf.Abs(s.y), r * 2f);
-        float half = h * 0.5f - r;
-
-        p1 = center + up * half;
-        p2 = center - up * half;
-        radius = r;
-        return true;
-    }
-    bool GetSphere(Transform root, out Vector3 center, out float radius)
-    {
-        center = default; radius = 0f;
-        var sph = root.GetComponentInChildren<SphereCollider>();
-        if (!sph) return false;
-
-        Vector3 s = sph.transform.lossyScale;
-        float maxScale = Mathf.Max(Mathf.Abs(s.x), Mathf.Abs(s.y), Mathf.Abs(s.z));
-        radius = sph.radius * maxScale;
-        center = sph.transform.TransformPoint(sph.center);
-        return true;
-    }
-    bool GetBox(Transform root, out Vector3 center, out Vector3 halfExtents, out Quaternion orientation)
-    {
-        center = default; halfExtents = default; orientation = Quaternion.identity;
-        var box = root.GetComponentInChildren<BoxCollider>();
-        if (!box) return false;
-
-        Vector3 s = box.transform.lossyScale;
-        Vector3 sizeWS = new Vector3(
-            box.size.x * Mathf.Abs(s.x),
-            box.size.y * Mathf.Abs(s.y),
-            box.size.z * Mathf.Abs(s.z)
-        );
-        halfExtents = sizeWS * 0.5f;
-        center = box.transform.TransformPoint(box.center);
-        orientation = box.transform.rotation;
-        return true;
-    }
-
-
-    static bool IsInLayerMask(int layer, LayerMask mask)
-    {
-        return (mask.value & (1 << layer)) != 0;
-    }
-
-    public float GetCurrentT()
-    {
-        return _t;
-    }
-
-    int _forceHoldFrames = 0;
-    Vector3 _forcedPosOnce;
-
-    public void ResnapTToWorldPosition(Vector3 worldPos)
-    {
-        if (!ValidateSpline(out _spline)) return;
-
-        float4x4 world = (float4x4)splineContainer.transform.localToWorldMatrix;
-        float4x4 worldToLocal = math.inverse(world);
-
-      
-        float3 posLocal = math.transform(worldToLocal, (float3)worldPos);
-        SplineUtility.GetNearestPoint(_spline, posLocal, out float3 nearestLocal, out float t);
-        if (!math.isfinite(t)) return;
-
-        _t = t;
-
-      
-        float3 nearestWorld = math.transform(world, nearestLocal);
-        Vector3 p = _rb.position;
-        _rb.position = new Vector3(nearestWorld.x, p.y, nearestWorld.z);
-
-     
-        _forcedPosOnce = _rb.position;
-        _forceHoldFrames = 3; 
-    }
-
-    
-    bool _skipInitialSnapOnce = false;
-
- 
-    public void MarkSpawnedBySpawner()
-    {
-        _skipInitialSnapOnce = true;
-    }
-
-    void SetMoveDust(bool active)
-    {
-        if (!moveDust) return;
-        moveDust.gameObject.SetActive(active);
-    }
-
-
+    #endregion
 }

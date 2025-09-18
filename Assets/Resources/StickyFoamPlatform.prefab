@@ -11,11 +11,11 @@ GameObject:
   - component: {fileID: 5851727490283129001}
   - component: {fileID: 4000680042390667596}
   - component: {fileID: 3414102966035558986}
-  - component: {fileID: 583975430499121249}
   - component: {fileID: 8724697663506390342}
-  - component: {fileID: 8082216114276783464}
-  m_Layer: 6
-  m_Name: FoamPlatform
+  - component: {fileID: -6578358333409829061}
+  - component: {fileID: 6860225954786132399}
+  m_Layer: 11
+  m_Name: StickyFoamPlatform
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -30,8 +30,8 @@ Transform:
   m_GameObject: {fileID: 7362176438172506803}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -36.79, y: 0, z: -39.2}
-  m_LocalScale: {x: 0.2, y: 0.2, z: 0.2}
+  m_LocalPosition: {x: 100, y: 100, z: 100}
+  m_LocalScale: {x: 1.5, y: 1.5, z: 1.5}
   m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 0}
@@ -89,27 +89,6 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!65 &583975430499121249
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7362176438172506803}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Size: {x: 1, y: 1, z: 1}
-  m_Center: {x: 0, y: 0, z: 0}
 --- !u!54 &8724697663506390342
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -119,8 +98,8 @@ Rigidbody:
   m_GameObject: {fileID: 7362176438172506803}
   serializedVersion: 4
   m_Mass: 0.1
-  m_Drag: 0
-  m_AngularDrag: 0
+  m_Drag: 1
+  m_AngularDrag: 3
   m_CenterOfMass: {x: 0, y: 0, z: 0}
   m_InertiaTensor: {x: 1, y: 1, z: 1}
   m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
@@ -137,7 +116,7 @@ Rigidbody:
   m_Interpolate: 1
   m_Constraints: 0
   m_CollisionDetection: 1
---- !u!114 &8082216114276783464
+--- !u!114 &-6578358333409829061
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -146,16 +125,44 @@ MonoBehaviour:
   m_GameObject: {fileID: 7362176438172506803}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7308e0ac248e96b4f9c9be16ce197fc9, type: 3}
+  m_Script: {fileID: 11500000, guid: dc612293dd495a54186d574eca10b9ba, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  lifetime: 1
-  stepHeight: 0.5
-  canStack: 1
+  stickDistance: 0.3
+  stickableLayers:
+    serializedVersion: 2
+    m_Bits: 2176
+  stickForce: 100
+  canStickToFoam: 1
+  lifetime: 20
+  stepHeight: 1
   playerLayer:
     serializedVersion: 2
     m_Bits: 512
-  foamMaterial: {fileID: 2100000, guid: d39c6e7f4ae42a745ab4d204d754dca8, type: 2}
-  foamColor: {r: 1, g: 1, b: 1, a: 1}
-  platformFriction: 2
-  solidifyOnLanding: 1
+  unstuckColor: {r: 1, g: 1, b: 1, a: 1}
+  stuckColor: {r: 0, g: 1, b: 1, a: 1}
+  foamMaterial: {fileID: 2100000, guid: 421e78f4ac395ed4d9d82e67feda29e0, type: 2}
+  enableTriggerControl: 1
+--- !u!136 &6860225954786132399
+CapsuleCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7362176438172506803}
+  m_Material: {fileID: 13400000, guid: fadff6a7ec866b746b1972c7b552ea8b, type: 2}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Radius: 0.45
+  m_Height: 10
+  m_Direction: 0
+  m_Center: {x: 0, y: 0, z: 0}

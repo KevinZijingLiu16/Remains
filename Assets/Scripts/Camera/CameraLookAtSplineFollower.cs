@@ -1,65 +1,50 @@
-using Unity.Mathematics;
+﻿using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.Splines;
-
 
 [DisallowMultipleComponent]
 public class CameraLookAtSplineFollower : MonoBehaviour
 {
     [Header("References")]
-  
     [SerializeField] private SplineRunnerRB playerRunner;
-
     [SerializeField] private Transform playerTransform;
-
-    public SplineContainer splineContainer;
+    [SerializeField] private SplineTracker splineTracker; // 新增：直接引用SplineTracker
+    public SplineContainer splineContainer; // 保留作为后备引用
 
     [Header("Input (New Input System)")]
-
     public InputActionProperty moveAction;
 
     [Header("Motion Settings")]
-
     [SerializeField] private bool loop = true;
-
     [SerializeField] private bool decoupleYFromSpline = true;
-
     [SerializeField] private float offsetAlongSplineMeters = 2.0f;
-
     [SerializeField] private Vector3 worldOffset = new Vector3(0f, 1.6f, 0f);
     [Range(0.01f, 1f)]
-
     [SerializeField] private float stick = 0.9f;
 
     [Header("Facing")]
-   
     [SerializeField] private bool faceHorizontalOnly = true;
- 
     [SerializeField] private bool rotateAlongTangent = false;
 
     // runtime
-    Spline _spline;
-    float _t;              
-    float _approxLen = 1f;   
-    float _cachedMove;       
+    private float _t;
+    private float _cachedMove;
 
     void Awake()
     {
         ResolveRefs();
 
-        if (!ValidateSpline(out _spline))
+        if (!ValidateSplineTracker())
         {
-            Debug.LogWarning("[CameraLookAtSplineFollower] No valid spline.");
-            enabled = false;
-            return;
+            Debug.LogWarning("[CameraLookAtSplineFollower] No valid spline tracker.");
+            //enabled = false;
+            //return;
         }
 
-        RecomputeLength();
-
-        
+   
         float tPlayer = GetNearestTOnSpline(playerTransform ? playerTransform.position : transform.position);
-        float dtOffset = Mathf.Clamp(offsetAlongSplineMeters / math.max(0.001f, _approxLen), -1f, 1f);
+        float dtOffset = Mathf.Clamp(offsetAlongSplineMeters / math.max(0.001f, splineTracker.ApproximateLength), -1f, 1f);
         _t = loop ? Mathf.Repeat(tPlayer + dtOffset, 1f) : Mathf.Clamp01(tPlayer + dtOffset);
 
         SnapToT(_t, immediate: true);
@@ -82,99 +67,128 @@ public class CameraLookAtSplineFollower : MonoBehaviour
 
     void FixedUpdate()
     {
-        if (!ValidateSpline(out _spline)) return;
+        if (!ValidateSplineTracker()) return;
         if (playerRunner == null) return;
 
-   
-        float playerT = playerRunner.GetCurrentT(); 
+      
+        float playerT = playerRunner.GetCurrentT();
 
-        float dtOffset = offsetAlongSplineMeters / math.max(0.001f, _approxLen);
+       
+        float dtOffset = offsetAlongSplineMeters / math.max(0.001f, splineTracker.ApproximateLength);
         _t = loop ? Mathf.Repeat(playerT + dtOffset, 1f) : Mathf.Clamp01(playerT + dtOffset);
 
         SnapToT(_t, immediate: false);
     }
 
-
-
     void SnapToT(float t, bool immediate)
     {
-        float4x4 world = (float4x4)splineContainer.transform.localToWorldMatrix;
+        if (!ValidateSplineTracker()) return;
 
-        float3 wp = math.transform(world, _spline.EvaluatePosition(t));
-        float3 wt = math.rotate(world, _spline.EvaluateTangent(t));
-        if (math.lengthsq(wt) < 1e-6f) wt = new float3(0, 0, 1);
+     
+        Vector3 splineWorldPos = splineTracker.GetWorldPositionAtT(t);
+        Vector3 splineWorldTangent = splineTracker.GetWorldTangentAtT(t);
 
-        Vector3 pos = (Vector3)wp;
+        Vector3 pos = splineWorldPos;
 
         if (decoupleYFromSpline)
         {
-           
+         
             float baseY = (playerTransform ? playerTransform.position.y : pos.y) + worldOffset.y;
             pos.y = baseY;
 
-          
+        
             pos.x += worldOffset.x;
             pos.z += worldOffset.z;
         }
         else
         {
-           
+        
             pos += worldOffset;
         }
 
-        
-        if (immediate || stick >= 0.999f) transform.position = pos;
-        else transform.position = Vector3.Lerp(transform.position, pos, Mathf.Clamp01(stick));
+    
+        if (immediate || stick >= 0.999f)
+            transform.position = pos;
+        else
+            transform.position = Vector3.Lerp(transform.position, pos, Mathf.Clamp01(stick));
 
-     
+   
         if (rotateAlongTangent)
         {
-            Vector3 fwd = (Vector3)wt;
+            Vector3 fwd = splineWorldTangent;
             if (faceHorizontalOnly)
             {
                 fwd.y = 0f;
-                if (fwd.sqrMagnitude > 1e-8f) fwd.Normalize();
-                else fwd = transform.forward;
+                if (fwd.sqrMagnitude > 1e-8f)
+                    fwd.Normalize();
+                else
+                    fwd = transform.forward;
             }
             transform.rotation = Quaternion.LookRotation(fwd, Vector3.up);
         }
     }
 
- 
     void ResolveRefs()
-    {
-        if (playerRunner == null) playerRunner = FindFirstObjectByType<SplineRunnerRB>();
-        if (playerRunner != null && playerTransform == null) playerTransform = playerRunner.transform;
-        if (splineContainer == null && playerRunner != null) splineContainer = playerRunner.splineContainer;
+    { 
+        if (playerRunner == null)
+            playerRunner = FindFirstObjectByType<SplineRunnerRB>();
 
-        //reuse player input actions
+        if (playerRunner != null && playerTransform == null)
+            playerTransform = playerRunner.transform;
+
+     
+        if (splineTracker == null && playerRunner != null)
+            splineTracker = playerRunner.GetComponent<SplineTracker>();
+
+    
+        if (splineContainer == null && splineTracker != null)
+            splineContainer = splineTracker.splineContainer;
+
         if (moveAction.action == null && playerRunner != null && playerRunner.moveAction.action != null)
         {
             moveAction = playerRunner.moveAction;
         }
     }
 
-    bool ValidateSpline(out Spline spline)
+    bool ValidateSplineTracker()
     {
-        spline = null;
-        if (!splineContainer) return false;
-        spline = splineContainer.Spline;
-        return spline != null && spline.Count >= 2;
-    }
-
-    void RecomputeLength()
-    {
-        float4x4 world = (float4x4)splineContainer.transform.localToWorldMatrix;
-        _approxLen = math.max(0.1f, SplineUtility.CalculateLength(splineContainer.Spline, world));
+        if (splineTracker == null) return false;
+        return splineTracker.IsValid();
     }
 
     float GetNearestTOnSpline(Vector3 worldPos)
     {
-        float4x4 world = (float4x4)splineContainer.transform.localToWorldMatrix;
-        float4x4 inv = math.inverse(world);
-        float3 pLocal = math.transform(inv, (float3)worldPos);
+        if (!ValidateSplineTracker()) return 0f;
 
-        SplineUtility.GetNearestPoint(splineContainer.Spline, pLocal, out float3 _, out float t);
-        return math.isfinite(t) ? t : 0f;
+        var projection = splineTracker.ProjectWorldPointToSpline(worldPos);
+        return projection.isValid ? projection.t : 0f;
+    }
+
+
+    public void SetOffset(float offsetMeters)
+    {
+        offsetAlongSplineMeters = offsetMeters;
+    }
+
+    public void SetWorldOffset(Vector3 offset)
+    {
+        worldOffset = offset;
+    }
+
+    public float GetCurrentT() => _t;
+    public Vector3 GetCurrentWorldOffset() => worldOffset;
+    public float GetCurrentSplineOffset() => offsetAlongSplineMeters;
+
+
+    [ContextMenu("Sync to Player")]
+    public void SyncToPlayer()
+    {
+        if (playerRunner != null && ValidateSplineTracker())
+        {
+            float playerT = playerRunner.GetCurrentT();
+            float dtOffset = offsetAlongSplineMeters / math.max(0.001f, splineTracker.ApproximateLength);
+            _t = loop ? Mathf.Repeat(playerT + dtOffset, 1f) : Mathf.Clamp01(playerT + dtOffset);
+            SnapToT(_t, immediate: true);
+        }
     }
 }
