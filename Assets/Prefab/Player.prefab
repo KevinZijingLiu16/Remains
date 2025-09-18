@@ -983,9 +983,11 @@ MonoBehaviour:
   meshRoot: {fileID: 4321562147133051610}
   meshFacingOffsetY: 0
   meshFlipLerp: 0.25
+
   faceHorizontalOnly: 1
   moveDust: {fileID: 7399046494303257283}
   minInputForDust: 0.876
+
   requireGroundedForDust: 1
 --- !u!114 &1222422445896103442
 MonoBehaviour:
@@ -1046,10 +1048,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cdca92b74510a104fad8c6b606668143, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+
   maxPower: 100
   initialPower: 100
   updateInterval: 1
   applyInstantOnZoneChange: 0
+
+
 --- !u!114 &3314129805790912136
 MonoBehaviour:
   m_ObjectHideFlags: 0
