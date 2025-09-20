@@ -139,6 +139,8 @@ public class WeaponSelectionUI : MonoBehaviour, IWeaponSelectionUI
         }
 
         if (enableDebugLogs) Debug.Log($"[WeaponSelectionUI] Created {_spawnedButtons.Count} weapon buttons");
+
+    
     }
 
     public void HideWeaponPanel()
@@ -156,6 +158,7 @@ public class WeaponSelectionUI : MonoBehaviour, IWeaponSelectionUI
                 weaponPanel.SetActive(false);
             }
         }
+      
     }
 
     private void UpdateCurrentWeaponDisplay(IWeapon weapon)

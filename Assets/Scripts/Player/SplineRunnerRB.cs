@@ -1,10 +1,7 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-/// <summary>
-/// 重构后的玩家控制器，专注于输入处理和游戏逻辑协调
-/// 修复了碰撞时被推转的问题
-/// </summary>
+
 [RequireComponent(typeof(Rigidbody), typeof(SplineObjectMover))]
 public class SplineRunnerRB : MonoBehaviour
 {
@@ -35,7 +32,13 @@ public class SplineRunnerRB : MonoBehaviour
 
     [Header("Visual (mesh only)")]
     [SerializeField] private Transform meshRoot;
-    [SerializeField] private float meshFacingOffsetY = 0f;
+    [SerializeField] private float _meshFacingOffsetY = 0f;
+    public float meshFacingOffsetY
+    {
+        get { return _meshFacingOffsetY; }  // 返回私有字段
+        set { _meshFacingOffsetY = value; } // 设置私有字段
+    }
+
     [Tooltip("Flip interpolation speed (0 = instant, 1 = very slow).")]
     [Range(0f, 1f)] public float meshFlipLerp = 0.25f;
     [SerializeField] private bool faceHorizontalOnly = true;
@@ -45,22 +48,30 @@ public class SplineRunnerRB : MonoBehaviour
     [SerializeField, Range(0f, 1f)] private float minInputForDust = 0.1f;
     [SerializeField] private bool requireGroundedForDust = true;
 
-    // 组件引用
     private Rigidbody _rb;
     private SplineObjectMover _splineMover;
     private SplineTracker _splineTracker;
+  
 
-    // 状态变量
-    private float _t = 0f;                  // 当前在spline上的位置 (0..1)
+    private float _t = 0f;                  
     private float _cachedMove;
     private bool _cachedJump;
     private bool _grounded;
     private bool _lastMovePositive = true;
+    public bool IsCurrentlyGrounded
+    {
+        get { return _grounded; }
+    }
+    public bool IsMovingPositive
+    {
+        get { return _lastMovePositive; }
+    }
 
-    // 强制位置保持机制 (用于spawner等特殊情况)
+
     private int _forceHoldFrames = 0;
     private Vector3 _forcedPosOnce;
     private bool _skipInitialSnapOnce = false;
+
 
     #region Unity Lifecycle
 
@@ -70,7 +81,7 @@ public class SplineRunnerRB : MonoBehaviour
         _splineMover = GetComponent<SplineObjectMover>();
         _splineTracker = GetComponent<SplineTracker>();
 
-        // 配置刚体 - 只锁定X和Z轴旋转，保留Y轴用于转向
+        
         _rb.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ;
         _rb.interpolation = RigidbodyInterpolation.Interpolate;
         _rb.collisionDetectionMode = CollisionDetectionMode.Continuous;
@@ -88,10 +99,10 @@ public class SplineRunnerRB : MonoBehaviour
             return;
         }
 
-        // 重新计算spline长度
+        
         _splineTracker.RecomputeLength();
 
-        // 根据需要进行初始快照
+       
         if (_skipInitialSnapOnce)
         {
             _skipInitialSnapOnce = false;
@@ -110,7 +121,7 @@ public class SplineRunnerRB : MonoBehaviour
 
     void Update()
     {
-        // 缓存输入
+    
         _cachedMove = moveAction.action != null ? moveAction.action.ReadValue<float>() : 0f;
         if (jumpAction.action != null && jumpAction.action.WasPressedThisFrame())
             _cachedJump = true;
@@ -118,7 +129,7 @@ public class SplineRunnerRB : MonoBehaviour
 
     void FixedUpdate()
     {
-        // 处理强制位置保持
+     
         if (_forceHoldFrames > 0)
         {
             _rb.MovePosition(_forcedPosOnce);
@@ -128,22 +139,22 @@ public class SplineRunnerRB : MonoBehaviour
 
         if (!_splineTracker.IsValid()) return;
 
-        // 更新地面检测
+      
         _grounded = IsGrounded();
 
-        // 计算控制系数（空中控制）
+    
         float control = _grounded ? 1f : Mathf.Clamp01(airControl);
 
-        // 处理spline移动
+   
         HandleSplineMovement(control);
 
-        // 处理跳跃
+        
         HandleJump();
 
-        // 更新朝向（重点修改的部分）
+        
         UpdateOrientationWithStabilization();
 
-        // 更新视觉效果
+        
         UpdateVisualEffects();
     }
 
@@ -157,10 +168,9 @@ public class SplineRunnerRB : MonoBehaviour
         float direction = Mathf.Sign(_cachedMove);
         float speed = Mathf.Abs(_cachedMove) * moveSpeed * controlFactor;
 
-        // 计算新的t值
         float newT = _splineTracker.MoveAlongSpline(_t, speed, dt, direction);
 
-        // 尝试移动到新位置
+  
         var moveResult = _splineMover.MoveToSplinePosition(_rb, newT, _t, direction);
 
         if (moveResult.success)
@@ -168,7 +178,7 @@ public class SplineRunnerRB : MonoBehaviour
             _t = moveResult.finalT;
         }
 
-        // 记录移动方向用于视觉更新
+      
         if (Mathf.Abs(_cachedMove) > 0.001f)
             _lastMovePositive = _cachedMove > 0f;
     }
@@ -186,9 +196,7 @@ public class SplineRunnerRB : MonoBehaviour
         _cachedJump = false;
     }
 
-    /// <summary>
-    /// 带有稳定化功能的旋转更新 - 防止碰撞时被推转
-    /// </summary>
+ 
     private void UpdateOrientationWithStabilization()
     {
         Vector3 splineTangent = _splineTracker.GetWorldTangentAtT(_t);
@@ -206,21 +214,21 @@ public class SplineRunnerRB : MonoBehaviour
 
         if (useStrongRotationCorrection)
         {
-            // 计算当前旋转与目标旋转的角度差
+          
             float angleDiff = Quaternion.Angle(_rb.rotation, targetRotation);
 
             float lerpSpeed;
             if (angleDiff > maxRotationDeviation)
             {
-                // 偏差太大，强制快速纠正
+                
                 lerpSpeed = correctionRotationSpeed;
 
-                // 清除角速度以防止继续旋转
+             
                 _rb.angularVelocity = Vector3.zero;
             }
             else
             {
-                // 正常情况下的平滑旋转
+                
                 lerpSpeed = _grounded ? normalRotationSpeed : normalRotationSpeed * 0.5f;
             }
 
@@ -228,7 +236,7 @@ public class SplineRunnerRB : MonoBehaviour
         }
         else
         {
-            // 原来的逻辑
+         
             float lerpSpeed = _grounded ? 0.2f : 0.1f;
             _rb.MoveRotation(Quaternion.Slerp(_rb.rotation, targetRotation, lerpSpeed));
         }
@@ -236,17 +244,17 @@ public class SplineRunnerRB : MonoBehaviour
 
     private void UpdateVisualEffects()
     {
-        // 更新mesh朝向
+        // 使用网格朝向
         if (meshRoot != null)
         {
-            float targetYaw = (_lastMovePositive ? 0f : -180f) + meshFacingOffsetY;
+            float targetYaw = (_lastMovePositive ? 0f : -180f) + _meshFacingOffsetY; // 使用私有字段
             Quaternion targetLocal = Quaternion.Euler(0f, targetYaw, 0f);
             meshRoot.localRotation = (meshFlipLerp <= 0f)
                 ? targetLocal
                 : Quaternion.Slerp(meshRoot.localRotation, targetLocal, meshFlipLerp);
         }
 
-        // 更新粒子效果
+        // 粒子效果逻辑
         bool inputMoving = Mathf.Abs(_cachedMove) > minInputForDust;
         bool shouldPlayDust = inputMoving && (!requireGroundedForDust || _grounded);
         SetMoveDust(shouldPlayDust);
@@ -256,17 +264,15 @@ public class SplineRunnerRB : MonoBehaviour
 
     #region Collision Handling
 
-    /// <summary>
-    /// 碰撞开始时重置旋转状态
-    /// </summary>
+
     void OnCollisionEnter(Collision collision)
     {
         if (resetAngularVelocityOnCollision && collision.rigidbody != null)
         {
-            // 立即停止角速度
+           
             _rb.angularVelocity = Vector3.zero;
 
-            // 如果偏差很大，立即纠正旋转
+          
             Vector3 splineTangent = _splineTracker.GetWorldTangentAtT(_t);
             if (faceHorizontalOnly)
             {
@@ -287,14 +293,12 @@ public class SplineRunnerRB : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// 持续碰撞时保持旋转稳定
-    /// </summary>
+
     void OnCollisionStay(Collision collision)
     {
         if (resetAngularVelocityOnCollision && collision.rigidbody != null)
         {
-            // 在持续接触期间保持角速度为零
+            
             _rb.angularVelocity = Vector3.zero;
         }
     }
@@ -313,17 +317,13 @@ public class SplineRunnerRB : MonoBehaviour
 
     #region Public Interface
 
-    /// <summary>
-    /// 获取当前在spline上的t值
-    /// </summary>
+
     public float GetCurrentT()
     {
         return _t;
     }
 
-    /// <summary>
-    /// 重新将对象快照到指定世界坐标对应的spline位置
-    /// </summary>
+ 
     public void ResnapToWorldPosition(Vector3 worldPos)
     {
         if (!_splineTracker.IsValid()) return;
@@ -342,17 +342,12 @@ public class SplineRunnerRB : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// 标记此对象由spawner生成，跳过初始快照
-    /// </summary>
     public void MarkSpawnedBySpawner()
     {
         _skipInitialSnapOnce = true;
     }
 
-    /// <summary>
-    /// 手动快照到spline上最近的点
-    /// </summary>
+
     public void SnapToNearestOnSpline()
     {
         if (!_splineTracker.IsValid()) return;
@@ -368,9 +363,7 @@ public class SplineRunnerRB : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// 强制重置旋转到正确方向（调试用）
-    /// </summary>
+  
     [ContextMenu("Force Correct Rotation")]
     public void ForceCorrectRotation()
     {
@@ -393,6 +386,7 @@ public class SplineRunnerRB : MonoBehaviour
 
     #endregion
 
+
     #region Utility
 
     private void SetMoveDust(bool active)
@@ -413,11 +407,11 @@ public class SplineRunnerRB : MonoBehaviour
             Gizmos.color = Color.magenta;
             Gizmos.DrawWireSphere(_rb.worldCenterOfMass + groundCheckOffset, groundCheckRadius);
 
-            // 显示当前朝向
+           
             Gizmos.color = Color.blue;
             Gizmos.DrawRay(transform.position, transform.forward * 2f);
 
-            // 如果有splineTracker，显示应该朝向的方向
+           
             if (_splineTracker != null && _splineTracker.IsValid())
             {
                 Vector3 splineDir = _splineTracker.GetWorldTangentAtT(_t);
