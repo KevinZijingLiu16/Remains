@@ -44974,6 +44974,66 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 8873849828373940782, guid: 9a5ae1fa9d918ef4193b95a3ce48e5be, type: 3}
+      propertyPath: normalButtonColor.b
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8873849828373940782, guid: 9a5ae1fa9d918ef4193b95a3ce48e5be, type: 3}
+      propertyPath: normalButtonColor.g
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8873849828373940782, guid: 9a5ae1fa9d918ef4193b95a3ce48e5be, type: 3}
+      propertyPath: normalButtonColor.r
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8873849828373940782, guid: 9a5ae1fa9d918ef4193b95a3ce48e5be, type: 3}
+      propertyPath: equippedButtonColor.b
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8873849828373940782, guid: 9a5ae1fa9d918ef4193b95a3ce48e5be, type: 3}
+      propertyPath: equippedButtonColor.g
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8873849828373940782, guid: 9a5ae1fa9d918ef4193b95a3ce48e5be, type: 3}
+      propertyPath: equippedButtonColor.r
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8873849828373940782, guid: 9a5ae1fa9d918ef4193b95a3ce48e5be, type: 3}
+      propertyPath: selectedButtonColor.b
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8873849828373940782, guid: 9a5ae1fa9d918ef4193b95a3ce48e5be, type: 3}
+      propertyPath: selectedButtonColor.g
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8873849828373940782, guid: 9a5ae1fa9d918ef4193b95a3ce48e5be, type: 3}
+      propertyPath: selectedButtonColor.r
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8873849828373940782, guid: 9a5ae1fa9d918ef4193b95a3ce48e5be, type: 3}
+      propertyPath: moveAction.m_Reference
+      value: 
+      objectReference: {fileID: 4082227835250376965, guid: b447556366fb23b42aaea5a29fd1045e, type: 3}
+    - target: {fileID: 8873849828373940782, guid: 9a5ae1fa9d918ef4193b95a3ce48e5be, type: 3}
+      propertyPath: selectAction.m_Reference
+      value: 
+      objectReference: {fileID: -1764849395439482769, guid: b447556366fb23b42aaea5a29fd1045e, type: 3}
+    - target: {fileID: 8873849828373940782, guid: 9a5ae1fa9d918ef4193b95a3ce48e5be, type: 3}
+      propertyPath: moveAction.m_UseReference
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8873849828373940782, guid: 9a5ae1fa9d918ef4193b95a3ce48e5be, type: 3}
+      propertyPath: moveAction.m_Action.m_Name
+      value: Move
+      objectReference: {fileID: 0}
+    - target: {fileID: 8873849828373940782, guid: 9a5ae1fa9d918ef4193b95a3ce48e5be, type: 3}
+      propertyPath: selectAction.m_UseReference
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8873849828373940782, guid: 9a5ae1fa9d918ef4193b95a3ce48e5be, type: 3}
+      propertyPath: selectAction.m_Action.m_Name
+      value: Select
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -45189,6 +45249,30 @@ PrefabInstance:
       propertyPath: cam
       value: 
       objectReference: {fileID: 469093730}
+    - target: {fileID: 1222422445896103442, guid: 09c7ba42738258a47bfaad25b5ab5ee7, type: 3}
+      propertyPath: invertMouse
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1222422445896103442, guid: 09c7ba42738258a47bfaad25b5ab5ee7, type: 3}
+      propertyPath: invertController
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1222422445896103442, guid: 09c7ba42738258a47bfaad25b5ab5ee7, type: 3}
+      propertyPath: preferController
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1222422445896103442, guid: 09c7ba42738258a47bfaad25b5ab5ee7, type: 3}
+      propertyPath: rightStickAction.m_Reference
+      value: 
+      objectReference: {fileID: 7532812278678353016, guid: b447556366fb23b42aaea5a29fd1045e, type: 3}
+    - target: {fileID: 1222422445896103442, guid: 09c7ba42738258a47bfaad25b5ab5ee7, type: 3}
+      propertyPath: rightStickAction.m_UseReference
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1222422445896103442, guid: 09c7ba42738258a47bfaad25b5ab5ee7, type: 3}
+      propertyPath: rightStickAction.m_Action.m_Name
+      value: Right Stick
+      objectReference: {fileID: 0}
     - target: {fileID: 3314129805790912136, guid: 09c7ba42738258a47bfaad25b5ab5ee7, type: 3}
       propertyPath: equipmentManager
       value: 
