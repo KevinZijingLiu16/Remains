@@ -8,7 +8,6 @@ public class WeaponSystemController : MonoBehaviour
     [SerializeField] private WeaponSelectionUI selectionUI;
     [SerializeField] private WeaponEquipmentManager equipmentManager;
 
-  
     private IWeaponDataProvider _dataProvider;
     private IWeaponInputHandler _inputHandler;
     private IWeaponSelectionUI _selectionUI;
@@ -25,7 +24,6 @@ public class WeaponSystemController : MonoBehaviour
         UnsubscribeFromEvents();
     }
 
-  
     private void InitializeDependencies()
     {
         _dataProvider = weaponDatabase;
@@ -48,7 +46,6 @@ public class WeaponSystemController : MonoBehaviour
             Debug.LogError("[WeaponSystemController] IWeaponEquipmentManager not assigned!");
     }
 
-
     private void SubscribeToEvents()
     {
         if (_inputHandler != null)
@@ -67,7 +64,14 @@ public class WeaponSystemController : MonoBehaviour
         if (weaponUI != null)
         {
             weaponUI.OnWeaponUnequipRequested += HandleWeaponUnequipRequest;
-            //if (enableDebugLogs) Debug.Log("[WeaponSystemController] Subscribed to unequip event");
+        }
+
+        // Subscribe to navigation events if using enhanced input handler
+        var enhancedInputHandler = inputHandler as WeaponInputHandler;
+        if (enhancedInputHandler != null)
+        {
+            enhancedInputHandler.OnNavigationInput += HandleNavigationInput;
+            enhancedInputHandler.OnSelectionConfirmed += HandleSelectionConfirmed;
         }
     }
 
@@ -84,29 +88,44 @@ public class WeaponSystemController : MonoBehaviour
             _equipmentManager.OnWeaponEquipped -= HandleWeaponEquipped;
             _equipmentManager.OnWeaponUnequipped -= HandleWeaponUnequipped;
         }
+
         var weaponUI = _selectionUI as WeaponSelectionUI;
         if (weaponUI != null)
         {
             weaponUI.OnWeaponUnequipRequested -= HandleWeaponUnequipRequest;
         }
+
+        // Unsubscribe from navigation events
+        var enhancedInputHandler = inputHandler as WeaponInputHandler;
+        if (enhancedInputHandler != null)
+        {
+            enhancedInputHandler.OnNavigationInput -= HandleNavigationInput;
+            enhancedInputHandler.OnSelectionConfirmed -= HandleSelectionConfirmed;
+        }
     }
 
-   
+    private void HandleNavigationInput(float direction)
+    {
+        // This is handled directly in WeaponSelectionUI now
+        // But we could add additional logic here if needed
+        Debug.Log($"[WeaponSystemController] Navigation input: {direction}");
+    }
+
+    private void HandleSelectionConfirmed()
+    {
+        // This is handled directly in WeaponSelectionUI now
+        // But we could add additional logic here if needed
+        Debug.Log("[WeaponSystemController] Selection confirmed via input");
+    }
+
     private void HandleWeaponUnequipRequest()
     {
-        //if (enableDebugLogs) Debug.Log("[WeaponSystemController] Weapon unequip requested from UI");
-
         if (_equipmentManager != null)
         {
             var currentWeapon = _equipmentManager.CurrentWeapon;
             if (currentWeapon != null)
             {
-               // if (enableDebugLogs) Debug.Log($"[WeaponSystemController] Unequipping weapon: {currentWeapon.WeaponName}");
                 _equipmentManager.UnequipCurrentWeapon();
-            }
-            else
-            {
-                //if (enableDebugLogs) Debug.Log("[WeaponSystemController] No weapon currently equipped");
             }
         }
         else
@@ -114,6 +133,7 @@ public class WeaponSystemController : MonoBehaviour
             Debug.LogError("[WeaponSystemController] Equipment manager is null!");
         }
     }
+
     private void HandleWeaponSelectionRequest()
     {
         if (_selectionUI == null || _dataProvider == null) return;
@@ -137,16 +157,16 @@ public class WeaponSystemController : MonoBehaviour
     private void HandleWeaponEquipped(IWeapon weapon)
     {
         Debug.Log($"[WeaponSystemController] Weapon equipped: {weapon.WeaponName}");
-        // import audio for equipping weapon, effect
+        // TODO: Add audio for equipping weapon, effects
     }
 
     private void HandleWeaponUnequipped(IWeapon weapon)
     {
         Debug.Log($"[WeaponSystemController] Weapon unequipped: {weapon.WeaponName}");
-        // import audio for unequipping weapon, effect
+        // TODO: Add audio for unequipping weapon, effects
     }
 
-  
+    // Public API methods
     public void EquipWeapon(string weaponId)
     {
         _equipmentManager?.EquipWeapon(weaponId);

@@ -4,78 +4,126 @@ using UnityEngine.SceneManagement;
 public class CavePortal : MonoBehaviour
 {
     [Header("Portal Settings")]
-
     [SerializeField] private string targetSceneName = "Level1";
-
-
+    [SerializeField] private string levelDisplayName = "";
     [SerializeField] private LayerMask playerLayer = 1;
 
+    [Header("UI References")]
+    [SerializeField] private GameObject levelUI; 
+    [SerializeField] private Transform uiLookAtTarget; 
+
     [Header("Visual Effects")]
-
     [SerializeField] private GameObject portalEffect;
-
-
     [SerializeField] private GameObject interactionPrompt;
 
-    private bool _playerNearby = false;
+    private bool _playerInRange = false;
+    private SplineRunnerRB _currentPlayer;
+    private float _originalMeshOffsetY;
+    private LevelUIController _levelUIController;
 
     void Start()
     {
         if (interactionPrompt != null)
             interactionPrompt.SetActive(false);
+
+        if (levelUI != null)
+        {
+            levelUI.SetActive(false);
+            _levelUIController = levelUI.GetComponent<LevelUIController>();
+            if (_levelUIController != null)
+            {
+                _levelUIController.Initialize(this, levelDisplayName, targetSceneName);
+            }
+        }
     }
+
+    
 
     void OnTriggerEnter(Collider other)
     {
         if (IsPlayer(other))
         {
-            _playerNearby = true;
+            _playerInRange = true;
+            _currentPlayer = other.GetComponent<SplineRunnerRB>();
+
+            if (_currentPlayer != null)
+            {
+               
+                _originalMeshOffsetY = _currentPlayer.meshFacingOffsetY;
+
+              
+                bool isMovingPositive = _currentPlayer.IsMovingPositive;
+                _currentPlayer.meshFacingOffsetY = isMovingPositive ? -90f : 90f;
+
+                Debug.Log($"[CavePortal] Player moving direction: {(isMovingPositive ? "Right" : "Left")}, meshOffset set to: {_currentPlayer.meshFacingOffsetY}");
+            }
+
+          
+            if (levelUI != null)
+            {
+                levelUI.SetActive(true);
+                
+                Vector3 uiPosition = other.transform.position + other.transform.forward * 2f + Vector3.up * 1.5f;
+                levelUI.transform.position = uiPosition;
+
+                
+                if (_levelUIController != null)
+                {
+                    _levelUIController.RefreshLevelStatus();
+                }
+            }
+
             if (interactionPrompt != null)
                 interactionPrompt.SetActive(true);
 
-            // can play audio or vfx here
-            Debug.Log($"[CavePortal] Player approached cave entrance to {targetSceneName}");
+            Debug.Log($"[CavePortal] Player approached {levelDisplayName}");
         }
     }
 
     void OnTriggerExit(Collider other)
     {
-        if (IsPlayer(other))
+        if (IsPlayer(other) && _playerInRange)
         {
-            _playerNearby = false;
-            if (interactionPrompt != null)
-                interactionPrompt.SetActive(false);
+            ExitPortal();
         }
     }
 
-    void OnTriggerStay(Collider other)
+    public void OnChallengeSelected()
     {
-        if (IsPlayer(other) && _playerNearby)
-        {
-            // now is enter the level automatically, can change to UI button toggle
-            EnterCave(other);
-        }
-    }
-
-    void EnterCave(Collider playerCollider)
-    {
-        
-        var splineRunner = playerCollider.GetComponent<SplineRunnerRB>();
-        if (splineRunner == null)
-        {
-            Debug.LogError("[CavePortal] Player doesn't have SplineRunnerRB component!");
-            return;
-        }
-
-        // save current pos in GameProgressManager
-        Vector3 currentPos = playerCollider.transform.position;
-        float currentT = splineRunner.GetCurrentT();
-
-        GameProgressManager.Instance.SaveHubPosition(currentPos, currentT);
+        if (_currentPlayer == null) return;
 
        
-        Debug.Log($"[CavePortal] Entering cave: {targetSceneName}");
+        Vector3 currentPos = _currentPlayer.transform.position;
+        float currentT = _currentPlayer.GetCurrentT();
+        GameProgressManager.Instance.SaveHubPosition(currentPos, currentT);
+
+        Debug.Log($"[CavePortal] Entering challenge: {targetSceneName}");
         SceneManager.LoadScene(targetSceneName);
+    }
+
+    public void OnSkipSelected()
+    {
+        Debug.Log($"[CavePortal] Player skipped {levelDisplayName}");
+        ExitPortal();
+    }
+
+    private void ExitPortal()
+    {
+        _playerInRange = false;
+
+       
+        if (_currentPlayer != null)
+        {
+            _currentPlayer.meshFacingOffsetY = _originalMeshOffsetY;
+            _currentPlayer = null;
+        }
+
+        // Òþ²ØUI
+        if (levelUI != null)
+            levelUI.SetActive(false);
+
+        if (interactionPrompt != null)
+            interactionPrompt.SetActive(false);
     }
 
     bool IsPlayer(Collider other)
@@ -83,7 +131,6 @@ public class CavePortal : MonoBehaviour
         return ((1 << other.gameObject.layer) & playerLayer) != 0;
     }
 
-   
     void OnDrawGizmosSelected()
     {
         var collider = GetComponent<Collider>();
@@ -91,7 +138,6 @@ public class CavePortal : MonoBehaviour
         {
             Gizmos.color = new Color(0, 1, 1, 0.3f);
             Gizmos.matrix = transform.localToWorldMatrix;
-
             if (collider is BoxCollider box)
                 Gizmos.DrawCube(box.center, box.size);
             else if (collider is SphereCollider sphere)
