@@ -1,8 +1,6 @@
 using UnityEngine;
 
-/// <summary>
-/// 负责处理碰撞检测和扫描逻辑
-/// </summary>
+
 public class CollisionSweeper : MonoBehaviour
 {
     [Header("Collision Settings")]
@@ -10,9 +8,7 @@ public class CollisionSweeper : MonoBehaviour
 
     private bool _warnedNoColliderOnce = false;
 
-    /// <summary>
-    /// 扫描移动路径是否有碰撞
-    /// </summary>
+   
     public bool SweepPath(Rigidbody rb, Vector3 from, Vector3 to, out Vector3 safePos, out RaycastHit hit, int layerMask, float skin = -1f)
     {
         if (skin < 0f) skin = defaultSkin;
@@ -27,7 +23,9 @@ public class CollisionSweeper : MonoBehaviour
         Vector3 dir = delta / dist;
         Vector3 preOffset = from - rb.position;
 
-        // 尝试胶囊体扫描
+
+
+     
         if (GetCapsuleFromRigidbody(rb, out var c1, out var c2, out var cr))
         {
             c1 += preOffset;
@@ -41,7 +39,7 @@ public class CollisionSweeper : MonoBehaviour
             return false;
         }
 
-        // 尝试球体扫描
+     
         if (GetSphereFromRigidbody(rb, out var sc, out var sr))
         {
             sc += preOffset;
@@ -54,7 +52,7 @@ public class CollisionSweeper : MonoBehaviour
             return false;
         }
 
-        // 尝试盒子扫描
+     
         if (GetBoxFromRigidbody(rb, out var bc, out var bhe, out var brot))
         {
             bc += preOffset;
@@ -67,7 +65,7 @@ public class CollisionSweeper : MonoBehaviour
             return false;
         }
 
-        // 没有找到合适的碰撞体
+    
         if (!_warnedNoColliderOnce)
         {
             _warnedNoColliderOnce = true;
@@ -77,17 +75,12 @@ public class CollisionSweeper : MonoBehaviour
         return false;
     }
 
-    /// <summary>
-    /// 计算沿法线滑动的向量
-    /// </summary>
     public Vector3 SlideAlongNormal(Vector3 desiredDelta, Vector3 hitNormal)
     {
         return Vector3.ProjectOnPlane(desiredDelta, hitNormal);
     }
 
-    /// <summary>
-    /// 从刚体获取胶囊体碰撞器信息
-    /// </summary>
+
     private bool GetCapsuleFromRigidbody(Rigidbody rb, out Vector3 p1, out Vector3 p2, out float radius)
     {
         p1 = p2 = default;
@@ -110,9 +103,7 @@ public class CollisionSweeper : MonoBehaviour
         return true;
     }
 
-    /// <summary>
-    /// 从刚体获取球体碰撞器信息
-    /// </summary>
+
     private bool GetSphereFromRigidbody(Rigidbody rb, out Vector3 center, out float radius)
     {
         center = default;
@@ -128,9 +119,7 @@ public class CollisionSweeper : MonoBehaviour
         return true;
     }
 
-    /// <summary>
-    /// 从刚体获取盒子碰撞器信息
-    /// </summary>
+
     private bool GetBoxFromRigidbody(Rigidbody rb, out Vector3 center, out Vector3 halfExtents, out Quaternion orientation)
     {
         center = default;
@@ -152,9 +141,7 @@ public class CollisionSweeper : MonoBehaviour
         return true;
     }
 
-    /// <summary>
-    /// 检查层级是否在LayerMask中
-    /// </summary>
+
     public static bool IsInLayerMask(int layer, LayerMask mask)
     {
         return (mask.value & (1 << layer)) != 0;

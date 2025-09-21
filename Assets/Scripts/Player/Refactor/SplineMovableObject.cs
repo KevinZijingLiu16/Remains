@@ -1,8 +1,6 @@
 using UnityEngine;
 
-/// <summary>
-/// 可以在spline上移动的通用对象，可以被玩家推动或自主移动
-/// </summary>
+
 [RequireComponent(typeof(Rigidbody), typeof(SplineObjectMover))]
 public class SplineMovableObject : MonoBehaviour
 {
@@ -10,11 +8,11 @@ public class SplineMovableObject : MonoBehaviour
     [SerializeField] private bool autoMove = false;
     [SerializeField] private float autoMoveSpeed = 2f;
     [SerializeField] private bool autoMoveForward = true;
-    [SerializeField] private bool autoMovePingPong = false; // 是否在spline两端往返
+    [SerializeField] private bool autoMovePingPong = false; 
 
     [Header("Push Response")]
     [SerializeField] private bool canBePushed = true;
-    [SerializeField] private float pushResistance = 0.5f; // 0 = 无阻力, 1 = 完全阻力
+    [SerializeField] private float pushResistance = 0.5f; 
     [SerializeField] private float maxPushSpeed = 10f;
 
     [Header("Visual")]
@@ -25,14 +23,14 @@ public class SplineMovableObject : MonoBehaviour
     [Header("Events")]
     public UnityEngine.Events.UnityEvent OnReachSplineStart;
     public UnityEngine.Events.UnityEvent OnReachSplineEnd;
-    public UnityEngine.Events.UnityEvent<float> OnPushed; // 参数为推动力度
+    public UnityEngine.Events.UnityEvent<float> OnPushed;
 
-    // 组件引用
+ 
     private Rigidbody _rb;
     private SplineObjectMover _splineMover;
     private SplineTracker _splineTracker;
 
-    // 状态
+  
     private float _t = 0f;
     private bool _movingForward = true;
     private Vector3 _lastPosition;
@@ -51,8 +49,8 @@ public class SplineMovableObject : MonoBehaviour
         _splineMover = GetComponent<SplineObjectMover>();
         _splineTracker = GetComponent<SplineTracker>();
 
-        // 配置刚体为kinematic，因为我们手动控制移动
-        _rb.isKinematic = false; // 保持动态以便碰撞检测
+   
+        _rb.isKinematic = false; 
         _rb.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ;
     }
 
@@ -65,7 +63,7 @@ public class SplineMovableObject : MonoBehaviour
             return;
         }
 
-        // 快照到spline上
+      
         SnapToSpline();
         _lastPosition = transform.position;
         _movingForward = autoMoveForward;
@@ -77,20 +75,20 @@ public class SplineMovableObject : MonoBehaviour
 
         _lastPosition = transform.position;
 
-        // 处理自动移动
+      
         if (autoMove)
         {
             HandleAutoMovement();
         }
 
-        // 更新朝向
+     
         if (faceMovementDirection)
         {
             UpdateOrientation();
         }
 
-        // 检查边界事件
         CheckBoundaryEvents();
+        CheckAndCorrectSplineDeviation();
     }
 
     #endregion
@@ -102,7 +100,7 @@ public class SplineMovableObject : MonoBehaviour
         float direction = _movingForward ? 1f : -1f;
         float newT = _splineTracker.MoveAlongSpline(_t, autoMoveSpeed, Time.fixedDeltaTime, direction);
 
-        // 处理ping-pong移动
+     
         if (autoMovePingPong)
         {
             if (newT >= 1f && _movingForward)
@@ -117,14 +115,33 @@ public class SplineMovableObject : MonoBehaviour
             }
         }
 
-        // 移动到新位置
+       
         var moveResult = _splineMover.MoveToSplinePosition(_rb, newT, _t, direction);
         if (moveResult.success)
         {
             _t = moveResult.finalT;
         }
     }
-
+    private void CheckAndCorrectSplineDeviation()
+    {
+        var projection = _splineTracker.ProjectWorldPointToSpline(transform.position);
+        if (projection.isValid)
+        {
+            float deviation = Vector3.Distance(transform.position, projection.worldPosition);
+            if (deviation > 0.5f) 
+            {
+                
+                Vector3 correctedPos = new Vector3(
+                    projection.worldPosition.x,
+                    transform.position.y,
+                    projection.worldPosition.z
+                );
+                Vector3 lerpedPos = Vector3.Lerp(transform.position, correctedPos, Time.fixedDeltaTime * 2f);
+                _rb.MovePosition(lerpedPos);
+                _t = projection.t; 
+            }
+        }
+    }
     private void UpdateOrientation()
     {
         Vector3 tangent = _splineTracker.GetWorldTangentAtT(_t);
@@ -136,7 +153,7 @@ public class SplineMovableObject : MonoBehaviour
             tangent.Normalize();
         }
 
-        // 根据移动方向调整朝向
+       
         if (!_movingForward)
             tangent = -tangent;
 
@@ -157,13 +174,11 @@ public class SplineMovableObject : MonoBehaviour
         bool atEnd = _t >= 0.99f;
         bool atStart = _t <= 0.01f;
 
-        // 触发到达终点事件
         if (atEnd && !_reachedEndLastFrame)
         {
             OnReachSplineEnd?.Invoke();
         }
 
-        // 触发到达起点事件
         if (atStart && !_reachedStartLastFrame)
         {
             OnReachSplineStart?.Invoke();
@@ -177,36 +192,34 @@ public class SplineMovableObject : MonoBehaviour
 
     #region Push Interface
 
-    /// <summary>
-    /// 被推动时调用
-    /// </summary>
+ 
     public bool TryPush(float pushDistance, Rigidbody pusher = null)
     {
         if (!canBePushed) return false;
 
-        // 应用阻力
+     
         float effectivePush = pushDistance * (1f - pushResistance);
         effectivePush = Mathf.Clamp(effectivePush, -maxPushSpeed * Time.fixedDeltaTime, maxPushSpeed * Time.fixedDeltaTime);
 
         if (Mathf.Abs(effectivePush) < 0.001f) return false;
 
-        // 计算新的t值
+     
         float direction = Mathf.Sign(effectivePush);
         float newT = _splineTracker.GetTAfterDistance(_t, effectivePush);
 
-        // 移动
+     
         var moveResult = _splineMover.MoveToSplinePosition(_rb, newT, _t, direction);
         if (moveResult.success)
         {
             _t = moveResult.finalT;
 
-            // 如果有自动移动，更新移动方向
+           
             if (autoMove && autoMovePingPong)
             {
                 _movingForward = direction > 0;
             }
 
-            // 触发推动事件
+           
             OnPushed?.Invoke(Mathf.Abs(effectivePush));
             return true;
         }
@@ -214,9 +227,6 @@ public class SplineMovableObject : MonoBehaviour
         return false;
     }
 
-    /// <summary>
-    /// 直接设置在spline上的位置
-    /// </summary>
     public void SetSplinePosition(float t)
     {
         _t = Mathf.Clamp01(t);
@@ -225,9 +235,7 @@ public class SplineMovableObject : MonoBehaviour
         _rb.MovePosition(targetPos);
     }
 
-    /// <summary>
-    /// 快照到spline上最近的点
-    /// </summary>
+  
     public void SnapToSpline()
     {
         if (!_splineTracker.IsValid()) return;
@@ -245,9 +253,7 @@ public class SplineMovableObject : MonoBehaviour
 
     #region Configuration
 
-    /// <summary>
-    /// 设置自动移动
-    /// </summary>
+  
     public void SetAutoMove(bool enabled, float speed = -1f, bool forward = true, bool pingPong = false)
     {
         autoMove = enabled;
@@ -257,9 +263,7 @@ public class SplineMovableObject : MonoBehaviour
         autoMovePingPong = pingPong;
     }
 
-    /// <summary>
-    /// 设置推动响应
-    /// </summary>
+
     public void SetPushResponse(bool canPush, float resistance = -1f, float maxSpeed = -1f)
     {
         canBePushed = canPush;
@@ -276,16 +280,15 @@ public class SplineMovableObject : MonoBehaviour
     {
         if (_splineTracker != null && _splineTracker.IsValid())
         {
-            // 绘制当前位置
+           
             Gizmos.color = Color.yellow;
             Gizmos.DrawWireSphere(transform.position, 0.2f);
 
-            // 绘制spline上的对应点
             Vector3 splinePos = _splineTracker.GetWorldPositionAtT(_t);
             Gizmos.color = Color.green;
             Gizmos.DrawWireSphere(splinePos, 0.15f);
 
-            // 连线
+     
             Gizmos.color = Color.cyan;
             Gizmos.DrawLine(transform.position, splinePos);
         }

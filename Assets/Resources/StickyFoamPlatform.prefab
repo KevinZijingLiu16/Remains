@@ -131,7 +131,7 @@ MonoBehaviour:
   stickDistance: 0.3
   stickableLayers:
     serializedVersion: 2
-    m_Bits: 2176
+    m_Bits: 2432
   stickForce: 100
   canStickToFoam: 1
   lifetime: 20

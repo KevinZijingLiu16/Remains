@@ -486,6 +486,31 @@ MonoBehaviour:
       m_SingletonActionBindings: []
       m_Flags: 0
     m_Reference: {fileID: -7561899546735797782, guid: b447556366fb23b42aaea5a29fd1045e, type: 3}
+  moveAction:
+    m_UseReference: 0
+    m_Action:
+      m_Name: 
+      m_Type: 0
+      m_ExpectedControlType: 
+      m_Id: 4a0e5e85-558b-4c9c-bcf0-0cfa2fada2fb
+      m_Processors: 
+      m_Interactions: 
+      m_SingletonActionBindings: []
+      m_Flags: 0
+    m_Reference: {fileID: 0}
+  selectAction:
+    m_UseReference: 0
+    m_Action:
+      m_Name: 
+      m_Type: 0
+      m_ExpectedControlType: 
+      m_Id: db419cb8-8e2b-4b7a-a084-914fde21cf0f
+      m_Processors: 
+      m_Interactions: 
+      m_SingletonActionBindings: []
+      m_Flags: 0
+    m_Reference: {fileID: 0}
+  navigationInputDelay: 0.2
 --- !u!1 &1348692803051686853
 GameObject:
   m_ObjectHideFlags: 0
@@ -930,6 +955,32 @@ MonoBehaviour:
   currentWeaponDisplay: {fileID: 3917599745338550044}
   currentWeaponIcon: {fileID: 267556502730130989}
   currentWeaponText: {fileID: 764595032471771731}
+  moveAction:
+    m_UseReference: 1
+    m_Action:
+      m_Name: Move
+      m_Type: 0
+      m_ExpectedControlType: 
+      m_Id: 99c6a348-1a8c-4648-9b75-28d2d409150c
+      m_Processors: 
+      m_Interactions: 
+      m_SingletonActionBindings: []
+      m_Flags: 0
+    m_Reference: {fileID: 4082227835250376965, guid: b447556366fb23b42aaea5a29fd1045e, type: 3}
+  selectAction:
+    m_UseReference: 1
+    m_Action:
+      m_Name: Select
+      m_Type: 0
+      m_ExpectedControlType: 
+      m_Id: 6a615f97-3b01-4aef-92da-27e460987bf8
+      m_Processors: 
+      m_Interactions: 
+      m_SingletonActionBindings: []
+      m_Flags: 0
+    m_Reference: {fileID: -1764849395439482769, guid: b447556366fb23b42aaea5a29fd1045e, type: 3}
+  normalButtonColor: {r: 0, g: 0, b: 0, a: 1}
+  selectedButtonColor: {r: 1, g: 1, b: 1, a: 1}
   panelShowDuration: 0.3
   enableDebugLogs: 1
 --- !u!1 &4785052327897846012
