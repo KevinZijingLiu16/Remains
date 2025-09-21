@@ -2,9 +2,7 @@ using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Splines;
 
-/// <summary>
-/// 负责管理spline轨道相关的逻辑，可以被多个对象共享使用
-/// </summary>
+
 public class SplineTracker : MonoBehaviour
 {
     [Header("Spline Configuration")]
@@ -28,13 +26,11 @@ public class SplineTracker : MonoBehaviour
 
     void Start()
     {
-        // 确保在其他组件使用前就准备好
+     
         RefreshMatrices();
     }
 
-    /// <summary>
-    /// 验证并缓存spline引用
-    /// </summary>
+ 
     public bool ValidateAndCacheSpline()
     {
         if (!splineContainer)
@@ -54,9 +50,7 @@ public class SplineTracker : MonoBehaviour
         return true;
     }
 
-    /// <summary>
-    /// 刷新变换矩阵缓存
-    /// </summary>
+ 
     public void RefreshMatrices()
     {
         if (splineContainer != null)
@@ -66,9 +60,6 @@ public class SplineTracker : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// 重新计算spline长度
-    /// </summary>
     public void RecomputeLength()
     {
         if (!ValidateAndCacheSpline()) return;
@@ -77,14 +68,7 @@ public class SplineTracker : MonoBehaviour
         _approxLength = math.max(0.1f, SplineUtility.CalculateLength(_spline, _worldMatrix));
     }
 
-    /// <summary>
-    /// 在spline上移动指定的t值距离
-    /// </summary>
-    /// <param name="currentT">当前t值</param>
-    /// <param name="speedMetersPerSec">移动速度(米/秒)</param>
-    /// <param name="deltaTime">时间增量</param>
-    /// <param name="direction">移动方向(1=正向, -1=反向)</param>
-    /// <returns>新的t值</returns>
+
     public float MoveAlongSpline(float currentT, float speedMetersPerSec, float deltaTime, float direction)
     {
         if (!ValidateAndCacheSpline()) return currentT;
@@ -97,9 +81,7 @@ public class SplineTracker : MonoBehaviour
         return math.isfinite(newT) ? newT : currentT;
     }
 
-    /// <summary>
-    /// 获取指定t值处的世界坐标位置
-    /// </summary>
+ 
     public Vector3 GetWorldPositionAtT(float t)
     {
         if (!ValidateAndCacheSpline()) return Vector3.zero;
@@ -109,9 +91,7 @@ public class SplineTracker : MonoBehaviour
         return (Vector3)worldPos;
     }
 
-    /// <summary>
-    /// 获取指定t值处的世界坐标切线方向
-    /// </summary>
+   
     public Vector3 GetWorldTangentAtT(float t)
     {
         if (!ValidateAndCacheSpline()) return Vector3.forward;
@@ -119,7 +99,7 @@ public class SplineTracker : MonoBehaviour
         float3 localTan = _spline.EvaluateTangent(t);
         float3 worldTan = math.rotate(_worldMatrix, localTan);
 
-        // 如果切线长度太小，尝试使用稍微偏移的点来计算方向
+     
         if (math.lengthsq(worldTan) < 1e-6f)
         {
             float t2 = loop ? math.frac(t + 0.001f) : math.clamp(t + 0.001f, 0f, 1f);
@@ -133,9 +113,6 @@ public class SplineTracker : MonoBehaviour
         return math.lengthsq(worldTan) > 1e-6f ? (Vector3)math.normalize(worldTan) : Vector3.forward;
     }
 
-    /// <summary>
-    /// 将世界坐标点投影到spline上，返回最近点的t值和世界坐标
-    /// </summary>
     public SplineProjectionResult ProjectWorldPointToSpline(Vector3 worldPoint)
     {
         if (!ValidateAndCacheSpline())
@@ -159,9 +136,7 @@ public class SplineTracker : MonoBehaviour
         };
     }
 
-    /// <summary>
-    /// 将对象快照到spline上最近的点
-    /// </summary>
+  
     public Vector3 SnapToNearestPoint(Vector3 currentWorldPos, bool decoupleY = true)
     {
         var projection = ProjectWorldPointToSpline(currentWorldPos);
@@ -172,9 +147,7 @@ public class SplineTracker : MonoBehaviour
             : projection.worldPosition;
     }
 
-    /// <summary>
-    /// 获取在spline上移动特定距离后的t值
-    /// </summary>
+   
     public float GetTAfterDistance(float startT, float distanceMeters)
     {
         if (!ValidateAndCacheSpline()) return startT;
@@ -184,18 +157,14 @@ public class SplineTracker : MonoBehaviour
         return loop ? Mathf.Repeat(newT, 1f) : Mathf.Clamp01(newT);
     }
 
-    /// <summary>
-    /// 验证当前spline是否有效
-    /// </summary>
+
     public bool IsValid()
     {
         return splineContainer != null && _spline != null && _spline.Count >= 2;
     }
 }
 
-/// <summary>
-/// Spline投影结果
-/// </summary>
+
 public struct SplineProjectionResult
 {
     public float t;

@@ -400,9 +400,10 @@ GameObject:
   - component: {fileID: 898915913791518817}
   - component: {fileID: 6955724168558983234}
   - component: {fileID: 9119221170956561110}
+  - component: {fileID: 4315309462463828222}
   m_Layer: 0
   m_Name: MainCharacterVer2heel
-  m_TagString: Untagged
+  m_TagString: wheel
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -477,6 +478,27 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!135 &4315309462463828222
+SphereCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4719109870880387396}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Radius: 0.004643069
+  m_Center: {x: -0.000019836356, y: 0, z: 4.440892e-16}
 --- !u!1 &5237267898955946489
 GameObject:
   m_ObjectHideFlags: 0
@@ -667,9 +689,10 @@ GameObject:
   - component: {fileID: 7994875321484431098}
   - component: {fileID: 188431505473361076}
   - component: {fileID: 5061989857219522775}
+  - component: {fileID: 8553022756109551577}
   m_Layer: 0
   m_Name: MainCharacterVer2Head
-  m_TagString: Untagged
+  m_TagString: head
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -743,6 +766,27 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!135 &8553022756109551577
+SphereCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8173888918257210678}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Radius: 0.00429151
+  m_Center: {x: -0.0000000048894435, y: 0.00013353178, z: 0.00031383123}
 --- !u!1 &8431507675713234506
 GameObject:
   m_ObjectHideFlags: 0
@@ -924,7 +968,7 @@ MonoBehaviour:
   jumpHeight: 1
   groundLayers:
     serializedVersion: 2
-    m_Bits: 64
+    m_Bits: 2112
   groundCheckRadius: 1
   groundCheckOffset: {x: 0, y: -0.7, z: 0}
   useStrongRotationCorrection: 1
@@ -981,13 +1025,11 @@ MonoBehaviour:
       m_Flags: 0
     m_Reference: {fileID: 6932356325863392289, guid: b447556366fb23b42aaea5a29fd1045e, type: 3}
   meshRoot: {fileID: 4321562147133051610}
-  meshFacingOffsetY: 0
+  _meshFacingOffsetY: 0
   meshFlipLerp: 0.25
-
   faceHorizontalOnly: 1
-  moveDust: {fileID: 7399046494303257283}
-  minInputForDust: 0.876
-
+  moveDust: {fileID: 0}
+  minInputForDust: 0.1
   requireGroundedForDust: 1
 --- !u!114 &1222422445896103442
 MonoBehaviour:
@@ -1004,11 +1046,50 @@ MonoBehaviour:
   leftArmPivot: {fileID: 2259875117357108934}
   rightArmPivot: {fileID: 3364643381126947812}
   cam: {fileID: 0}
+  rightStickAction:
+    m_UseReference: 1
+    m_Action:
+      m_Name: Right Stick
+      m_Type: 0
+      m_ExpectedControlType: 
+      m_Id: 26a19403-8cff-473b-843b-d302b99da386
+      m_Processors: 
+      m_Interactions: 
+      m_SingletonActionBindings: []
+      m_Flags: 0
+    m_Reference: {fileID: 7532812278678353016, guid: b447556366fb23b42aaea5a29fd1045e, type: 3}
   minX: -150
   maxX: 20
-  invert: 1
+  invertMouse: 1
+  invertController: 1
+  controllerSensitivity: 1
+  controllerCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 1
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 1
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
   mirrorRight: 0
   rotateSpeed: 720
+  preferController: 1
 --- !u!54 &2467858228515749485
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -1048,13 +1129,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cdca92b74510a104fad8c6b606668143, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-
   maxPower: 100
-  initialPower: 100
+  initialPower: 50
   updateInterval: 1
-  applyInstantOnZoneChange: 0
-
-
+  applyInstantOnZoneChange: 1
 --- !u!114 &3314129805790912136
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1418,11 +1496,6 @@ PrefabInstance:
 --- !u!4 &7233365221029056055 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 4072303999023846, guid: 926756ba87637d341beaaaa81afdddeb, type: 3}
-  m_PrefabInstance: {fileID: 7236269636446942417}
-  m_PrefabAsset: {fileID: 0}
---- !u!198 &7399046494303257283 stripped
-ParticleSystem:
-  m_CorrespondingSourceObject: {fileID: 198956013436990994, guid: 926756ba87637d341beaaaa81afdddeb, type: 3}
   m_PrefabInstance: {fileID: 7236269636446942417}
   m_PrefabAsset: {fileID: 0}
 --- !u!1001 &7900835433002018482
