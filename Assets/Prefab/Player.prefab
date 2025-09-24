@@ -1028,7 +1028,7 @@ MonoBehaviour:
   _meshFacingOffsetY: 0
   meshFlipLerp: 0.25
   faceHorizontalOnly: 1
-  moveDust: {fileID: 0}
+  moveDust: {fileID: 7399046494303257283}
   minInputForDust: 0.1
   requireGroundedForDust: 1
 --- !u!114 &1222422445896103442
@@ -1496,6 +1496,11 @@ PrefabInstance:
 --- !u!4 &7233365221029056055 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 4072303999023846, guid: 926756ba87637d341beaaaa81afdddeb, type: 3}
+  m_PrefabInstance: {fileID: 7236269636446942417}
+  m_PrefabAsset: {fileID: 0}
+--- !u!198 &7399046494303257283 stripped
+ParticleSystem:
+  m_CorrespondingSourceObject: {fileID: 198956013436990994, guid: 926756ba87637d341beaaaa81afdddeb, type: 3}
   m_PrefabInstance: {fileID: 7236269636446942417}
   m_PrefabAsset: {fileID: 0}
 --- !u!1001 &7900835433002018482
