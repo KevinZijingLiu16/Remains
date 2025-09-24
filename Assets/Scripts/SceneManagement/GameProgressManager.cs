@@ -215,11 +215,11 @@ public class GameProgressManager : MonoBehaviour
             levelName = _currentLevelName,
             position = position,
             splineT = splineT,
-            activationTime = System.DateTime.Now.ToBinary()
+            activationTime = System.DateTime.Now.Ticks  // 修复：使用Ticks而不是ToBinary()
         };
 
         activeCheckPoints[key] = checkPointData;
-        Debug.Log($"[GameProgress] CheckPoint {checkPointID} activated in {_currentLevelName}");
+        Debug.Log($"[GameProgress] CheckPoint {checkPointID} activated in {_currentLevelName}, time: {checkPointData.activationTime}");
     }
 
     public bool IsCheckPointActivated(string levelName, string checkPointID)
@@ -234,8 +234,12 @@ public class GameProgressManager : MonoBehaviour
         CheckPointData latestCheckPoint = null;
         long latestTime = 0;
 
+        Debug.Log($"[GameProgress] Searching for latest checkpoint in level: {levelName}");
+
         foreach (var kvp in activeCheckPoints)
         {
+            Debug.Log($"[GameProgress] Checking: {kvp.Value.checkPointID}, time: {kvp.Value.activationTime}");
+
             if (kvp.Value.levelName == levelName && kvp.Value.activationTime > latestTime)
             {
                 latestCheckPoint = kvp.Value;
@@ -246,8 +250,10 @@ public class GameProgressManager : MonoBehaviour
         if (latestCheckPoint != null)
         {
             checkPointData = latestCheckPoint;
+            Debug.Log($"[GameProgress] Found latest checkpoint: {latestCheckPoint.checkPointID}");
             return true;
         }
+
         return false;
     }
 
@@ -405,5 +411,12 @@ public class CheckPointData
     public string levelName;
     public Vector3 position;
     public float splineT;
-    public long activationTime; 
+    public long activationTime;
+
+ 
+    public void SetActivationTimeNow()
+    {
+  
+        activationTime = System.DateTime.Now.Ticks;
+    }
 }
