@@ -7,7 +7,7 @@ public class CheckPointManager : MonoBehaviour
     [SerializeField] private bool autoFindCheckPoints = true;
 
     [Header("Debug")]
-    [SerializeField] private bool showDebugInfo = false;
+    //[SerializeField] private bool showDebugInfo = false;
 
     private CheckPointSystem lastActivatedCheckPoint;
 

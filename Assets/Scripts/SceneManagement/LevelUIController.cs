@@ -19,6 +19,12 @@ public class LevelUIController : MonoBehaviour
     [SerializeField] private Button rechallengeButton;
     [SerializeField] private Button exitButton;
 
+    [Header("UI Elements - Locked")]
+    [SerializeField] private GameObject lockedPanel;
+    [SerializeField] private TextMeshProUGUI lockedLevelNameText;
+    [SerializeField] private TextMeshProUGUI lockedMessageText;
+    [SerializeField] private Button lockedExitButton;
+
 
 
     private CavePortal _parentPortal;
@@ -52,8 +58,10 @@ public class LevelUIController : MonoBehaviour
         if (exitButton != null)
             exitButton.onClick.AddListener(OnSkipClicked);
 
-       
-       
+        // 锁定状态按钮
+        if (lockedExitButton != null)
+            lockedExitButton.onClick.AddListener(OnSkipClicked);
+
     }
 
     public void RefreshLevelStatus()
@@ -61,21 +69,47 @@ public class LevelUIController : MonoBehaviour
         if (GameProgressManager.Instance == null) return;
 
         LevelStatus status = GameProgressManager.Instance.GetLevelStatus(_levelSceneName);
+        bool hasKey = GameProgressManager.Instance.CanAccessLevel(_levelSceneName);
 
-     
+        // 隐藏所有面板
         if (firstTimePanel != null) firstTimePanel.SetActive(false);
         if (completedPanel != null) completedPanel.SetActive(false);
-    
+        if (lockedPanel != null) lockedPanel.SetActive(false);
 
         switch (status)
         {
             case LevelStatus.NotStarted:
-                ShowFirstTimeUI();
+                if (hasKey)
+                {
+                    ShowFirstTimeUI();
+                }
+                else
+                {
+                    ShowLockedUI();
+                }
                 break;
-         
             case LevelStatus.Completed:
-                ShowCompletedUI();
+                if (hasKey)
+                {
+                    ShowCompletedUI();
+                }
+                else
+                {
+                    ShowLockedUI(); // 理论上不会发生，但保险起见
+                }
                 break;
+        }
+    }
+
+    private void ShowLockedUI()
+    {
+        if (lockedPanel != null)
+        {
+            lockedPanel.SetActive(true);
+            if (lockedLevelNameText != null)
+                lockedLevelNameText.text = _levelName;
+            if (lockedMessageText != null)
+                lockedMessageText.text = "Need Key To Enter";
         }
     }
 

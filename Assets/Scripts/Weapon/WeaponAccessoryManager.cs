@@ -15,7 +15,7 @@ public class WeaponAccessoryManager : MonoBehaviour
 
     [Header("Debug")]
     [SerializeField] private bool enableDebugLogs = true;
-    [SerializeField] private bool showGizmos = true;
+  //  [SerializeField] private bool showGizmos = true;
 
     private Dictionary<string, GameObject> _activeAccessories = new Dictionary<string, GameObject>();
     private WeaponEquipmentManager _equipmentManager;

@@ -101,7 +101,7 @@ public class FoamPlatform : MonoBehaviour, IFoamPlatform
         _rigidbody.constraints = RigidbodyConstraints.FreezeRotation;
 
        
-        Debug.Log($"[FoamPlatform] Platform solidified at {transform.position}");
+      //  Debug.Log($"[FoamPlatform] Platform solidified at {transform.position}");
     }
 
     private void UpdateVisualFeedback()
