@@ -106,7 +106,7 @@ public class StickyFoamSprayAttack : IWeaponAttackBehavior
     {
         if (weaponTransform == null) return;
 
-        // 射线检测敌人
+       
         Ray ray = new Ray(weaponTransform.position, weaponTransform.forward);
         RaycastHit[] hits = Physics.RaycastAll(ray, maxRange);
 
@@ -193,7 +193,7 @@ public class StickyFoamSprayAttack : IWeaponAttackBehavior
             {
                
                 Vector3 directionToTarget = (hit.point - weaponTransform.position).normalized;
-                baseDirection = Vector3.Slerp(baseDirection, directionToTarget, 0.3f); // 30%的修正
+                baseDirection = Vector3.Slerp(baseDirection, directionToTarget, 0.3f); 
             }
         }
 

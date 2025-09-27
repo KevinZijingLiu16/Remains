@@ -22,6 +22,9 @@ public class GameProgressManager : MonoBehaviour
     private string _currentLevelName = "";
     private float _levelStartTime;
 
+    [Header("Key Management")]
+    [SerializeField] private Dictionary<string, KeyData> collectedKeys = new Dictionary<string, KeyData>();
+
     void Awake()
     {
         if (Instance == null)
@@ -201,6 +204,71 @@ public class GameProgressManager : MonoBehaviour
     }
 
     #endregion
+    #region Key Management
+
+    public void CollectKey(string keyID, string unlocksLevel)
+    {
+        if (collectedKeys.ContainsKey(keyID)) return;
+
+        KeyData keyData = new KeyData
+        {
+            keyID = keyID,
+            unlocksLevel = unlocksLevel,
+            collectionTime = System.DateTime.Now.Ticks
+        };
+
+        collectedKeys[keyID] = keyData;
+
+       
+        KeyEvents.OnKeyCollected?.Invoke(keyID, unlocksLevel);
+
+      
+    }
+
+    public bool HasKey(string keyID)
+    {
+        return collectedKeys.ContainsKey(keyID);
+    }
+
+    public bool CanAccessLevel(string levelName)
+    {
+       
+        if (levelName == "Level1") return true;
+
+        foreach (var keyData in collectedKeys.Values)
+        {
+            if (keyData.unlocksLevel == levelName)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public string GetKeyForLevel(string levelName)
+    {
+        foreach (var kvp in collectedKeys)
+        {
+            if (kvp.Value.unlocksLevel == levelName)
+            {
+                return kvp.Key;
+            }
+        }
+        return "";
+    }
+
+    public List<KeyData> GetAllKeys()
+    {
+        return new List<KeyData>(collectedKeys.Values);
+    }
+
+    public void ClearAllKeys()
+    {
+        collectedKeys.Clear();
+        Debug.Log("[GameProgress] Çå³ýËùÓÐÔ¿³×");
+    }
+
+    #endregion
 
     #region CheckPoint System
 
@@ -306,6 +374,17 @@ public class GameProgressManager : MonoBehaviour
         }
 
       
+        
+
+      
+        if (_hasReturnData)
+        {
+            PlayerPrefs.SetFloat("Hub_PosX", _savedHubPosition.x);
+            PlayerPrefs.SetFloat("Hub_PosY", _savedHubPosition.y);
+            PlayerPrefs.SetFloat("Hub_PosZ", _savedHubPosition.z);
+            PlayerPrefs.SetFloat("Hub_SplineT", _savedSplineT);
+            PlayerPrefs.SetInt("Hub_HasReturnData", 1);
+        }
         PlayerPrefs.SetInt("CheckPoint_Count", activeCheckPoints.Count);
         int index = 0;
         foreach (var kvp in activeCheckPoints)
@@ -321,17 +400,6 @@ public class GameProgressManager : MonoBehaviour
             PlayerPrefs.SetString($"{prefix}_Time", kvp.Value.activationTime.ToString());
             index++;
         }
-
-      
-        if (_hasReturnData)
-        {
-            PlayerPrefs.SetFloat("Hub_PosX", _savedHubPosition.x);
-            PlayerPrefs.SetFloat("Hub_PosY", _savedHubPosition.y);
-            PlayerPrefs.SetFloat("Hub_PosZ", _savedHubPosition.z);
-            PlayerPrefs.SetFloat("Hub_SplineT", _savedSplineT);
-            PlayerPrefs.SetInt("Hub_HasReturnData", 1);
-        }
-
         PlayerPrefs.Save();
         Debug.Log("[GameProgress] Progress saved to PlayerPrefs");
     }
@@ -380,6 +448,27 @@ public class GameProgressManager : MonoBehaviour
         }
 
         Debug.Log("[GameProgress] Progress loaded from PlayerPrefs");
+
+        int keyCount = PlayerPrefs.GetInt("Key_Count", 0);
+        collectedKeys.Clear();
+
+        for (int i = 0; i < keyCount; i++)
+        {
+            string prefix = $"Key_{i}";
+            string keyID = PlayerPrefs.GetString($"{prefix}_ID");
+
+            if (!string.IsNullOrEmpty(keyID))
+            {
+                KeyData keyData = new KeyData
+                {
+                    keyID = keyID,
+                    unlocksLevel = PlayerPrefs.GetString($"{prefix}_UnlocksLevel"),
+                    collectionTime = long.Parse(PlayerPrefs.GetString($"{prefix}_CollectionTime", "0"))
+                };
+
+                collectedKeys[keyID] = keyData;
+            }
+        }
     }
 
     #endregion

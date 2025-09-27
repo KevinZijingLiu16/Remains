@@ -10,7 +10,7 @@ public class SplineRunnerRB : MonoBehaviour
     [Tooltip("Air control factor (0~1). 0 = no control in air, 1 = same as on ground.")]
     [Range(0f, 1f)] public float airControl = 0.6f;
     [Tooltip("Reserved bank angle in degrees. Can be used for visual tilt effects.")]
-    [SerializeField] private float bankDegrees = 0f;
+    //[SerializeField] private float bankDegrees = 0f;
 
     [Header("Jump & Ground")]
     [SerializeField] private float jumpHeight = 2f;
@@ -35,8 +35,8 @@ public class SplineRunnerRB : MonoBehaviour
     [SerializeField] private float _meshFacingOffsetY = 0f;
     public float meshFacingOffsetY
     {
-        get { return _meshFacingOffsetY; }  // 返回私有字段
-        set { _meshFacingOffsetY = value; } // 设置私有字段
+        get { return _meshFacingOffsetY; }  
+        set { _meshFacingOffsetY = value; } 
     }
 
     [Tooltip("Flip interpolation speed (0 = instant, 1 = very slow).")]
@@ -94,7 +94,7 @@ public class SplineRunnerRB : MonoBehaviour
 
         if (!_splineTracker.IsValid())
         {
-            Debug.LogWarning("[SplineRunnerRB] SplineTracker 无效，组件已禁用。");
+           
             enabled = false;
             return;
         }
@@ -244,7 +244,7 @@ public class SplineRunnerRB : MonoBehaviour
 
     private void UpdateVisualEffects()
     {
-        // 使用网格朝向
+    
         if (meshRoot != null)
         {
             float targetYaw = (_lastMovePositive ? 0f : -180f) + _meshFacingOffsetY; // 使用私有字段
@@ -254,7 +254,7 @@ public class SplineRunnerRB : MonoBehaviour
                 : Quaternion.Slerp(meshRoot.localRotation, targetLocal, meshFlipLerp);
         }
 
-        // 粒子效果逻辑
+     
         bool inputMoving = Mathf.Abs(_cachedMove) > minInputForDust;
         bool shouldPlayDust = inputMoving && (!requireGroundedForDust || _grounded);
         SetMoveDust(shouldPlayDust);
@@ -338,7 +338,7 @@ public class SplineRunnerRB : MonoBehaviour
         {
             _rb.position = snapPos;
             _forcedPosOnce = _rb.position;
-            _forceHoldFrames = 3; // 保持3帧
+            _forceHoldFrames = 3; 
         }
     }
 

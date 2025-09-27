@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -18,6 +19,22 @@ public class LevelExit : MonoBehaviour
 
     [Header("Audio")]
     [SerializeField] private AudioClip completionSound;
+
+
+
+    [Header("Level Progression")]
+    [SerializeField] private LevelCompletionUI levelCompletionUI;
+
+    [Header("Level Key Mapping")]
+    [SerializeField] private List<LevelKeyMapping> levelKeyMappings = new List<LevelKeyMapping>();
+
+    [System.Serializable]
+    public class LevelKeyMapping
+    {
+        public string currentLevelName;
+        public string nextLevelKey;
+        public string nextLevelScene;
+    }
 
     private AudioSource _audioSource;
     private bool _hasCompleted = false;
@@ -40,7 +57,6 @@ public class LevelExit : MonoBehaviour
     private void CompleteLevel()
     {
         _hasCompleted = true;
-
         if (GameProgressManager.Instance == null)
         {
             Debug.LogError("[LevelExit] GameProgressManager not found!");
@@ -56,23 +72,83 @@ public class LevelExit : MonoBehaviour
 
       
         GameProgressManager.Instance.SetLevelCompleted(currentLevel, true);
-        GameProgressManager.Instance.SetLevelStarRating(currentLevel, 3); 
+        GameProgressManager.Instance.SetLevelStarRating(currentLevel, 3);
         GameProgressManager.Instance.SetLevelStatus(currentLevel, LevelStatus.Completed);
 
- 
+      
         GameProgressManager.Instance.ClearCheckPointsForLevel(currentLevel);
+
+       
+        if (_audioSource != null && completionSound != null)
+            _audioSource.PlayOneShot(completionSound);
 
         if (completionPrompt != null)
             completionPrompt.SetActive(true);
 
-      
-        if (_audioSource != null && completionSound != null)
-            _audioSource.PlayOneShot(completionSound);
-
         Debug.Log($"[LevelExit] Level {currentLevel} completed successfully!");
 
-       
-        Invoke(nameof(ReturnToHub), completionDelay);
+    
+        CheckForNextLevelKey(currentLevel);
+    }
+
+    private void CheckForNextLevelKey(string currentLevel)
+    {
+        Debug.Log($"[LevelExit] Looking for mappings for current level: '{currentLevel}'");
+        Debug.Log($"[LevelExit] Available mappings count: {levelKeyMappings.Count}");
+        string nextLevelKey = "";
+        string nextLevelScene = "";
+
+     
+        foreach (var mapping in levelKeyMappings)
+        {
+            if (mapping.currentLevelName == currentLevel)
+            {
+                nextLevelKey = mapping.nextLevelKey;
+                nextLevelScene = mapping.nextLevelScene;
+                break;
+            }
+        }
+
+        if (!string.IsNullOrEmpty(nextLevelScene) && !string.IsNullOrEmpty(nextLevelKey))
+        {
+         
+            bool hasNextLevelKey = GameProgressManager.Instance.HasKey(nextLevelKey);
+
+            Debug.Log($"[LevelExit] Checking for key: {nextLevelKey}, hasKey: {hasNextLevelKey}");
+
+    
+            if (hasNextLevelKey)
+            {
+                ShowCompletionUI(currentLevel, nextLevelKey, nextLevelScene);
+            }
+            else
+            {
+                ShowCompletionUI(currentLevel, "", "");
+            }
+        }
+        else
+        {
+            ShowCompletionUI(currentLevel, "", "");
+        }
+    }
+
+    private void ShowCompletionUI(string currentLevel, string foundKey, string nextLevel)
+    {
+     
+        if (levelCompletionUI == null)
+        {
+            levelCompletionUI = FindFirstObjectByType<LevelCompletionUI>();
+        }
+
+        if (levelCompletionUI == null)
+        {
+            Debug.LogWarning("[LevelExit] No LevelCompletionUI found in scene!");
+           
+            Invoke(nameof(ReturnToHub), completionDelay);
+            return;
+        }
+
+        levelCompletionUI.ShowCompletionUI(currentLevel, foundKey, nextLevel);
     }
 
     public void ReturnToHub()

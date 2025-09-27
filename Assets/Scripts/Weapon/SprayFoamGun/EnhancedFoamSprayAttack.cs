@@ -189,7 +189,7 @@ public class EnhancedFoamSprayAttack : IWeaponAttackBehavior
             platformRb.angularVelocity = Random.insideUnitSphere * 2f;
         }
 
-        Debug.Log($"[EnhancedFoamSprayAttack] Spawned foam #{burstIndex + 1} with speed {launchSpeed:F1}");
+        //Debug.Log($"[EnhancedFoamSprayAttack] Spawned foam #{burstIndex + 1} with speed {launchSpeed:F1}");
     }
 
    
