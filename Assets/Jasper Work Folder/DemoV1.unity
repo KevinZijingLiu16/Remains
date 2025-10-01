@@ -4578,7 +4578,7 @@ Transform:
   m_GameObject: {fileID: 469093726}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: -0.74139047, z: 0, w: 0.67107385}
-  m_LocalPosition: {x: -24.313251, y: 3.9, z: -39.136257}
+  m_LocalPosition: {x: -26.187326, y: 3.4199998, z: -41.403603}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -51497,6 +51497,30 @@ PrefabInstance:
       propertyPath: m_Name
       value: CameraControll
       objectReference: {fileID: 0}
+    - target: {fileID: 2248970314322404833, guid: 022e02960468a4f4c8fdb6778bddf78e, type: 3}
+      propertyPath: CameraSide
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2248970314322404833, guid: 022e02960468a4f4c8fdb6778bddf78e, type: 3}
+      propertyPath: CameraDistance
+      value: 11.7
+      objectReference: {fileID: 0}
+    - target: {fileID: 2248970314322404833, guid: 022e02960468a4f4c8fdb6778bddf78e, type: 3}
+      propertyPath: ShoulderOffset.x
+      value: 0.57
+      objectReference: {fileID: 0}
+    - target: {fileID: 2248970314322404833, guid: 022e02960468a4f4c8fdb6778bddf78e, type: 3}
+      propertyPath: ShoulderOffset.y
+      value: 1.8
+      objectReference: {fileID: 0}
+    - target: {fileID: 2248970314322404833, guid: 022e02960468a4f4c8fdb6778bddf78e, type: 3}
+      propertyPath: ShoulderOffset.z
+      value: 0.79
+      objectReference: {fileID: 0}
+    - target: {fileID: 2248970314322404833, guid: 022e02960468a4f4c8fdb6778bddf78e, type: 3}
+      propertyPath: VerticalArmLength
+      value: 0.22
+      objectReference: {fileID: 0}
     - target: {fileID: 5362773886868464198, guid: 022e02960468a4f4c8fdb6778bddf78e, type: 3}
       propertyPath: playerRunner
       value: 
@@ -51513,6 +51537,18 @@ PrefabInstance:
       propertyPath: splineContainer
       value: 
       objectReference: {fileID: 891642388}
+    - target: {fileID: 7890115760680017022, guid: 022e02960468a4f4c8fdb6778bddf78e, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 10.910004
+      objectReference: {fileID: 0}
+    - target: {fileID: 7890115760680017022, guid: 022e02960468a4f4c8fdb6778bddf78e, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 2.02
+      objectReference: {fileID: 0}
+    - target: {fileID: 7890115760680017022, guid: 022e02960468a4f4c8fdb6778bddf78e, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -0.57000047
+      objectReference: {fileID: 0}
     - target: {fileID: 8282137458091882016, guid: 022e02960468a4f4c8fdb6778bddf78e, type: 3}
       propertyPath: m_LocalPosition.x
       value: -37.1
