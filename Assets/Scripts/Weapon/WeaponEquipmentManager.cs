@@ -185,29 +185,5 @@ public class WeaponEquipmentManager : MonoBehaviour, IWeaponEquipmentManager
     }
 
 
-    void OnDrawGizmos()
-    {
-        if (showEquipPointGizmo && weaponEquipPoint != null)
-        {
-            Gizmos.color = _currentWeapon != null ? Color.green : Color.yellow;
-            Gizmos.DrawWireSphere(weaponEquipPoint.position, 0.1f);
-
-          
-            Gizmos.color = Color.red;
-            Gizmos.DrawRay(weaponEquipPoint.position, weaponEquipPoint.right * 0.2f);
-            Gizmos.color = Color.green;
-            Gizmos.DrawRay(weaponEquipPoint.position, weaponEquipPoint.up * 0.2f);
-            Gizmos.color = Color.blue;
-            Gizmos.DrawRay(weaponEquipPoint.position, weaponEquipPoint.forward * 0.2f);
-        }
-    }
-
-    void OnDrawGizmosSelected()
-    {
-        if (weaponEquipPoint != null)
-        {
-            Gizmos.color = Color.cyan;
-            Gizmos.DrawWireSphere(weaponEquipPoint.position, 0.2f);
-        }
-    }
+   
 }
