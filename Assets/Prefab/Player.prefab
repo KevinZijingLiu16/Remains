@@ -898,6 +898,7 @@ GameObject:
   - component: {fileID: 498878050004866769}
   - component: {fileID: 7839209380507754920}
   - component: {fileID: 8819790404724140678}
+  - component: {fileID: 9168531384222051359}
   m_Layer: 9
   m_Name: Player
   m_TagString: Player
@@ -964,7 +965,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   moveSpeed: 6
   airControl: 0.6
-  bankDegrees: 0
   jumpHeight: 1
   groundLayers:
     serializedVersion: 2
@@ -1204,7 +1204,6 @@ MonoBehaviour:
   airBlowerTankPrefab: {fileID: 724775822798444771, guid: 5fbfa2e0e9488a6458b28170c11fc642, type: 3}
   foamSprayTankPrefab: {fileID: 0}
   enableDebugLogs: 1
-  showGizmos: 1
 --- !u!114 &2920964770865250431
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1275,6 +1274,29 @@ MonoBehaviour:
   movableLayers:
     serializedVersion: 2
     m_Bits: 256
+--- !u!114 &9168531384222051359
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8488008983044618847}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 028c9969f220ffb479791294268addf2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  airFlowForce: 15
+  maxAirFlowSpeed: 8
+  requirePowerInZone: 1
+  zonePowerCostPerSecond: 2
+  enableDebugLogs: 1
+  _runner: {fileID: 6486217377835099663}
+  _rb: {fileID: 2467858228515749485}
+  _weaponController: {fileID: 3314129805790912136}
+  _inputProcessor: {fileID: 5820059121391796074}
+  _playerPower: {fileID: 7867804551119887455}
+  _equipmentManager: {fileID: 0}
 --- !u!1 &9080125912758651809
 GameObject:
   m_ObjectHideFlags: 0
