@@ -10,8 +10,9 @@ public class SplineRunnerRB : MonoBehaviour
     [Tooltip("Air control factor (0~1). 0 = no control in air, 1 = same as on ground.")]
     [Range(0f, 1f)] public float airControl = 0.6f;
     [Tooltip("Reserved bank angle in degrees. Can be used for visual tilt effects.")]
-    //[SerializeField] private float bankDegrees = 0f;
-
+    public float GetMoveSpeed() => moveSpeed;
+    public void SetMoveSpeed(float speed) => moveSpeed = speed;
+    public void SetCurrentT(float t) => _t = t;
     [Header("Jump & Ground")]
     [SerializeField] private float jumpHeight = 2f;
     [SerializeField] private LayerMask groundLayers = ~0;

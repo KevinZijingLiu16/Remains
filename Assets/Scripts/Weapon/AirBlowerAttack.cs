@@ -24,6 +24,7 @@ public class AirBlowerAttack : IWeaponAttackBehavior
         CreateAirEffect(weaponTransform);
 
         string mode = _isReversed ? "sucking" : "blowing";
+
         Debug.Log($"[AirBlowerAttack] Started air {mode}");
     }
 
