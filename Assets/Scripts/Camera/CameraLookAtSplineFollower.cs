@@ -9,8 +9,8 @@ public class CameraLookAtSplineFollower : MonoBehaviour
     [Header("References")]
     [SerializeField] private SplineRunnerRB playerRunner;
     [SerializeField] private Transform playerTransform;
-    [SerializeField] private SplineTracker splineTracker; // 新增：直接引用SplineTracker
-    public SplineContainer splineContainer; // 保留作为后备引用
+    [SerializeField] private SplineTracker splineTracker; 
+    public SplineContainer splineContainer; 
 
     [Header("Input (New Input System)")]
     public InputActionProperty moveAction;
