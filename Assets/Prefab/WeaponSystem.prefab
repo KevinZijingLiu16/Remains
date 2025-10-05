@@ -487,9 +487,9 @@ MonoBehaviour:
       m_Flags: 0
     m_Reference: {fileID: -7561899546735797782, guid: b447556366fb23b42aaea5a29fd1045e, type: 3}
   moveAction:
-    m_UseReference: 0
+    m_UseReference: 1
     m_Action:
-      m_Name: 
+      m_Name: Move
       m_Type: 0
       m_ExpectedControlType: 
       m_Id: 4a0e5e85-558b-4c9c-bcf0-0cfa2fada2fb
@@ -497,11 +497,11 @@ MonoBehaviour:
       m_Interactions: 
       m_SingletonActionBindings: []
       m_Flags: 0
-    m_Reference: {fileID: 0}
+    m_Reference: {fileID: 4082227835250376965, guid: b447556366fb23b42aaea5a29fd1045e, type: 3}
   selectAction:
-    m_UseReference: 0
+    m_UseReference: 1
     m_Action:
-      m_Name: 
+      m_Name: Select
       m_Type: 0
       m_ExpectedControlType: 
       m_Id: db419cb8-8e2b-4b7a-a084-914fde21cf0f
@@ -509,7 +509,7 @@ MonoBehaviour:
       m_Interactions: 
       m_SingletonActionBindings: []
       m_Flags: 0
-    m_Reference: {fileID: 0}
+    m_Reference: {fileID: -1764849395439482769, guid: b447556366fb23b42aaea5a29fd1045e, type: 3}
   navigationInputDelay: 0.2
 --- !u!1 &1348692803051686853
 GameObject:

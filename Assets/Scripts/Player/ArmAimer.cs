@@ -30,6 +30,10 @@ public class ArmAimer : MonoBehaviour
     [Header("Input Priority")]
     [SerializeField] private bool preferController = false; // If true, controller input overrides mouse when both are active
 
+    [Header("Debug")]
+    [SerializeField] private bool logAngleEachFrame = false;
+    [SerializeField] private int logEveryNFrames = 10; // 每多少帧打印一次，避免刷屏
+
     private Quaternion _baseLeftRot, _baseRightRot;
     private float _currentTargetOffsetX = 0f;
 
@@ -124,6 +128,12 @@ public class ArmAimer : MonoBehaviour
 
         _currentTargetOffsetX = targetOffsetX;
 
+        // Debug 打印角度（可开关 + 节流）
+        if (logAngleEachFrame && (Time.frameCount % logEveryNFrames == 0))
+        {
+            Debug.Log($"[ArmAimer] Current Aim Pitch: {_currentTargetOffsetX:F1}°");
+        }
+
         // Apply rotations to both arms
         ApplyLocalX(leftArmPivot, _baseLeftRot, _currentTargetOffsetX, rotateSpeed);
 
@@ -133,9 +143,9 @@ public class ArmAimer : MonoBehaviour
 
     private bool HasSignificantMouseMovement()
     {
-        // Check if mouse is actively being moved (you can adjust this logic based on your needs)
+        // 简单检测鼠标是否在屏幕内
         Vector3 mousePos = Input.mousePosition;
-        return mousePos.y > 0 && mousePos.y < Screen.height; // Simple check if mouse is in screen bounds
+        return mousePos.y > 0 && mousePos.y < Screen.height;
     }
 
     private float GetMouseTargetOffset()
@@ -164,7 +174,6 @@ public class ArmAimer : MonoBehaviour
         stickY = Mathf.Sign(stickY) * curveOutput;
 
         // Convert from -1..1 stick range to our min/max X range
-        // Stick input of 0 maps to center of our range
         float centerX = (minX + maxX) * 0.5f;
         float rangeX = (maxX - minX) * 0.5f;
 
@@ -194,7 +203,6 @@ public class ArmAimer : MonoBehaviour
     {
         if (!Application.isPlaying) return;
 
-        // Draw current aim direction
         if (leftArmPivot != null)
         {
             Gizmos.color = Color.red;
@@ -208,7 +216,7 @@ public class ArmAimer : MonoBehaviour
         }
     }
 
-    // Public methods for external control
+    // Public methods
     public void SetTargetOffset(float offsetX)
     {
         _currentTargetOffsetX = Mathf.Clamp(offsetX, minX, maxX);
@@ -222,12 +230,5 @@ public class ArmAimer : MonoBehaviour
     public bool IsUsingController()
     {
         return _hasControllerInput;
-    }
-
-    // Debug methods
-    [ContextMenu("Test Controller Input")]
-    public void TestControllerInput()
-    {
-        Debug.Log($"Right Stick: {_rightStickInput}, Has Input: {_hasControllerInput}, Current Offset: {_currentTargetOffsetX}");
     }
 }
