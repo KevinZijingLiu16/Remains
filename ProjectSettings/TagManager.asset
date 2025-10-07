@@ -6,6 +6,7 @@ TagManager:
   tags:
   - head
   - wheel
+  - Animal
   layers:
   - Default
   - TransparentFX

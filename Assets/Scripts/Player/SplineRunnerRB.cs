@@ -10,8 +10,9 @@ public class SplineRunnerRB : MonoBehaviour
     [Tooltip("Air control factor (0~1). 0 = no control in air, 1 = same as on ground.")]
     [Range(0f, 1f)] public float airControl = 0.6f;
     [Tooltip("Reserved bank angle in degrees. Can be used for visual tilt effects.")]
-    //[SerializeField] private float bankDegrees = 0f;
-
+    public float GetMoveSpeed() => moveSpeed;
+    public void SetMoveSpeed(float speed) => moveSpeed = speed;
+    public void SetCurrentT(float t) => _t = t;
     [Header("Jump & Ground")]
     [SerializeField] private float jumpHeight = 2f;
     [SerializeField] private LayerMask groundLayers = ~0;
@@ -47,6 +48,8 @@ public class SplineRunnerRB : MonoBehaviour
     [SerializeField] private ParticleSystem moveDust;
     [SerializeField, Range(0f, 1f)] private float minInputForDust = 0.1f;
     [SerializeField] private bool requireGroundedForDust = true;
+
+ 
 
     private Rigidbody _rb;
     private SplineObjectMover _splineMover;
@@ -129,7 +132,8 @@ public class SplineRunnerRB : MonoBehaviour
 
     void FixedUpdate()
     {
-     
+
+        
         if (_forceHoldFrames > 0)
         {
             _rb.MovePosition(_forcedPosOnce);
@@ -138,8 +142,23 @@ public class SplineRunnerRB : MonoBehaviour
         }
 
         if (!_splineTracker.IsValid()) return;
+        //if (FreeMode)
+        //{
+        //    _grounded = IsGrounded();
 
-      
+        //    // 可选：有水平速度时，慢慢朝速度方向转一点点，手感更自然
+        //    Vector3 v = _rb.linearVelocity; v.y = 0f;
+        //    if (v.sqrMagnitude > 0.05f)
+        //    {
+        //        Quaternion target = Quaternion.LookRotation(v.normalized, Vector3.up);
+        //        _rb.MoveRotation(Quaternion.Slerp(_rb.rotation, target, 0.2f));
+        //    }
+
+        //    UpdateVisualEffects(); // 需要就保留
+        //    return; // 关键：跳过 HandleSplineMovement/HandleJump/UpdateOrientationWithStabilization
+        //}
+
+
         _grounded = IsGrounded();
 
     
@@ -383,6 +402,20 @@ public class SplineRunnerRB : MonoBehaviour
             _rb.angularVelocity = Vector3.zero;
         }
     }
+
+
+
+    //public void EnterFreeMode()
+    //{
+    //    FreeMode = true;
+    //}
+
+    //public void ExitFreeModeAndResnap()
+    //{
+    //    FreeMode = false;
+        
+    //    ResnapToWorldPosition(transform.position);
+    //}
 
     #endregion
 

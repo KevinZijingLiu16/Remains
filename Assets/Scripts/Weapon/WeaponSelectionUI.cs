@@ -229,12 +229,12 @@ public class WeaponSelectionUI : MonoBehaviour, IWeaponSelectionUI
 
                 if (i == _selectedIndex)
                 {
-                    // Selected button - 当前选中的按钮显示高亮颜色
+                    
                     colors.normalColor = selectedButtonColor;
                 }
                 else
                 {
-                    // Normal button - 其他所有按钮显示普通颜色
+                  
                     colors.normalColor = normalButtonColor;
                 }
 
@@ -376,7 +376,7 @@ public class WeaponSelectionUI : MonoBehaviour, IWeaponSelectionUI
 
             if (currentWeaponText != null)
             {
-                currentWeaponText.text = $"当前装备: {weapon.WeaponName}";
+                currentWeaponText.text = $"current weapon: {weapon.WeaponName}";
                 if (enableDebugLogs) Debug.Log($"[WeaponSelectionUI] Updated weapon text: {currentWeaponText.text}");
             }
         }
@@ -392,7 +392,7 @@ public class WeaponSelectionUI : MonoBehaviour, IWeaponSelectionUI
 
             if (currentWeaponText != null)
             {
-                currentWeaponText.text = "无装备武器";
+                currentWeaponText.text = "no weapon equipped";
                 if (enableDebugLogs) Debug.Log("[WeaponSelectionUI] Set empty weapon text");
             }
         }
