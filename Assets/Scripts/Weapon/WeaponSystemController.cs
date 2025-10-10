@@ -136,6 +136,13 @@ public class WeaponSystemController : MonoBehaviour
 
     private void HandleWeaponSelectionRequest()
     {
+      
+        var batteryHolder = FindFirstObjectByType<BatteryHolder>();
+        if (batteryHolder != null && batteryHolder.HasBattery)
+        {
+            Debug.Log("[WeaponSystemController] Cannot open weapon UI - player is holding battery");
+            return; 
+        }
         if (_selectionUI == null || _dataProvider == null) return;
 
         if (_selectionUI.IsVisible)
