@@ -142,23 +142,7 @@ public class SplineRunnerRB : MonoBehaviour
         }
 
         if (!_splineTracker.IsValid()) return;
-        //if (FreeMode)
-        //{
-        //    _grounded = IsGrounded();
-
-        //    // 可选：有水平速度时，慢慢朝速度方向转一点点，手感更自然
-        //    Vector3 v = _rb.linearVelocity; v.y = 0f;
-        //    if (v.sqrMagnitude > 0.05f)
-        //    {
-        //        Quaternion target = Quaternion.LookRotation(v.normalized, Vector3.up);
-        //        _rb.MoveRotation(Quaternion.Slerp(_rb.rotation, target, 0.2f));
-        //    }
-
-        //    UpdateVisualEffects(); // 需要就保留
-        //    return; // 关键：跳过 HandleSplineMovement/HandleJump/UpdateOrientationWithStabilization
-        //}
-
-
+        
         _grounded = IsGrounded();
 
     
@@ -263,22 +247,35 @@ public class SplineRunnerRB : MonoBehaviour
 
     private void UpdateVisualEffects()
     {
-    
         if (meshRoot != null)
         {
-            float targetYaw = (_lastMovePositive ? 0f : -180f) + _meshFacingOffsetY; // 使用私有字段
-            Quaternion targetLocal = Quaternion.Euler(0f, targetYaw, 0f);
+           
+            Vector2 mousePos = Input.mousePosition;
+
+        
+            bool mouseOnLeft = mousePos.x < Screen.width * 0.5f;
+
+         
+            float targetAngle = (mouseOnLeft ? -180f : 0f) + _meshFacingOffsetY;
+
+            Quaternion targetLocal = Quaternion.Euler(0f, 0f, targetAngle);  // Z轴
+
             meshRoot.localRotation = (meshFlipLerp <= 0f)
                 ? targetLocal
                 : Quaternion.Slerp(meshRoot.localRotation, targetLocal, meshFlipLerp);
         }
 
-     
+    
+        if (moveDust != null)
+        {
+            float dustYaw = _lastMovePositive ? 180f : 0f;
+            moveDust.transform.localRotation = Quaternion.Euler(0f, dustYaw, 0f);
+        }
+
         bool inputMoving = Mathf.Abs(_cachedMove) > minInputForDust;
         bool shouldPlayDust = inputMoving && (!requireGroundedForDust || _grounded);
         SetMoveDust(shouldPlayDust);
     }
-
     #endregion
 
     #region Collision Handling
