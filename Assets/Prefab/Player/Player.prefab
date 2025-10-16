@@ -1179,6 +1179,8 @@ GameObject:
   - component: {fileID: 2188287054048393540}
   - component: {fileID: 9221634766091887356}
   - component: {fileID: 4708252463411317478}
+  - component: {fileID: 6182616996999751835}
+  - component: {fileID: 2125474146053635231}
   m_Layer: 9
   m_Name: Player
   m_TagString: Player
@@ -1228,7 +1230,7 @@ CapsuleCollider:
   m_Enabled: 1
   serializedVersion: 2
   m_Radius: 0.79
-  m_Height: 3.11
+  m_Height: 2.69
   m_Direction: 1
   m_Center: {x: 0, y: 0.0030465126, z: 0}
 --- !u!54 &2467858228515749485
@@ -1277,7 +1279,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 2240
   groundCheckRadius: 1
-  groundCheckOffset: {x: 0, y: -0.7, z: 0}
+  groundCheckOffset: {x: 0, y: -0.43, z: 0}
   useStrongRotationCorrection: 1
   maxRotationDeviation: 45
   normalRotationSpeed: 0.3
@@ -1656,6 +1658,76 @@ MonoBehaviour:
       m_Flags: 0
     m_Reference: {fileID: -5089246936728789370, guid: b447556366fb23b42aaea5a29fd1045e, type: 3}
   enableDebugLogs: 1
+--- !u!114 &6182616996999751835
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8488008983044618847}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c9185adbab11c50479a9dfbc48786118, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  bodyParts:
+  - partName: Head
+    renderer: {fileID: 5061989857219522775}
+    changeAllMaterials: 0
+    materialIndex: 0
+    originalMaterial: {fileID: 0}
+    originalMaterials: []
+    isDirty: 0
+  - partName: UpperBody
+    renderer: {fileID: 7016081135962082256}
+    changeAllMaterials: 1
+    materialIndex: 0
+    originalMaterial: {fileID: 0}
+    originalMaterials: []
+    isDirty: 0
+  - partName: LeftArm
+    renderer: {fileID: 191968230455043965}
+    changeAllMaterials: 1
+    materialIndex: 0
+    originalMaterial: {fileID: 0}
+    originalMaterials: []
+    isDirty: 0
+  - partName: RightArm
+    renderer: {fileID: 3328973706821983110}
+    changeAllMaterials: 1
+    materialIndex: 0
+    originalMaterial: {fileID: 0}
+    originalMaterials: []
+    isDirty: 0
+  - partName: StructurePart
+    renderer: {fileID: 7251319911890093033}
+    changeAllMaterials: 1
+    materialIndex: 0
+    originalMaterial: {fileID: 0}
+    originalMaterials: []
+    isDirty: 0
+  - partName: Wheel
+    renderer: {fileID: 9119221170956561110}
+    changeAllMaterials: 1
+    materialIndex: 0
+    originalMaterial: {fileID: 0}
+    originalMaterials: []
+    isDirty: 0
+  dirtyMaterial: {fileID: 2100000, guid: ea8621f62e5ee39449fc7db68e9c217a, type: 2}
+  enableDebugLogs: 1
+--- !u!114 &2125474146053635231
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8488008983044618847}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1d0f8fd2def81f1418f6d6c01a285cf0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  maxHealth: 3
 --- !u!1 &8511831290017885930
 GameObject:
   m_ObjectHideFlags: 0
@@ -1826,7 +1898,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4072303999023846, guid: 926756ba87637d341beaaaa81afdddeb, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -1.569
+      value: -1.35
       objectReference: {fileID: 0}
     - target: {fileID: 4072303999023846, guid: 926756ba87637d341beaaaa81afdddeb, type: 3}
       propertyPath: m_LocalPosition.z
