@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 8724697663506390342}
   - component: {fileID: -6578358333409829061}
   - component: {fileID: 6860225954786132399}
+  - component: {fileID: 1658808833504034495}
   m_Layer: 11
   m_Name: StickyFoamPlatform
   m_TagString: Untagged
@@ -29,13 +30,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7362176438172506803}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0.124772735, y: -0, z: -0, w: 0.99218535}
   m_LocalPosition: {x: 100, y: 100, z: 100}
   m_LocalScale: {x: 1.5, y: 1.5, z: 1.5}
   m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: -14.335, y: 0, z: 0}
 --- !u!33 &4000680042390667596
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -162,7 +163,28 @@ CapsuleCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Radius: 0.45
+  m_Radius: 0.23
   m_Height: 10
   m_Direction: 0
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!65 &1658808833504034495
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7362176438172506803}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 8.29, y: 0.19, z: 1}
+  m_Center: {x: -1.1915348, y: 0, z: 0}
