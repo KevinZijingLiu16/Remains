@@ -49,7 +49,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   playerTransform: {fileID: 0}
   playerDirtSystem: {fileID: 0}
-  detectionRange: 22.13
+  detectionRange: 100
   attackRange: 10
   playerLayer:
     serializedVersion: 2
@@ -85,10 +85,10 @@ CapsuleCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Radius: 5.88
-  m_Height: 1
-  m_Direction: 1
-  m_Center: {x: 0, y: 0, z: 0}
+  m_Radius: 2.6
+  m_Height: 12.34
+  m_Direction: 0
+  m_Center: {x: 0, y: -0.94, z: 0}
 --- !u!195 &1472834780007970650
 NavMeshAgent:
   m_ObjectHideFlags: 0
