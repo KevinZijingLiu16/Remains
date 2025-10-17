@@ -72,7 +72,7 @@ public class EnemyPatrolState : EnemyState
 
                 if (stateMachine.EnableDebugLogs)
                 {
-                    Debug.Log($"[EnemyPatrolState] Remaining distance: {stateMachine.NavAgent.remainingDistance:F2}, Stopping distance: {stateMachine.NavAgent.stoppingDistance:F2}");
+                   // Debug.Log($"[EnemyPatrolState] Remaining distance: {stateMachine.NavAgent.remainingDistance:F2}, Stopping distance: {stateMachine.NavAgent.stoppingDistance:F2}");
                 }
             }
         }

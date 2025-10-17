@@ -53649,22 +53649,6 @@ PrefabInstance:
       propertyPath: m_Name
       value: Enemy
       objectReference: {fileID: 0}
-    - target: {fileID: 5645734257185033169, guid: 3e91b047879890d499a1dcac03e1210a, type: 3}
-      propertyPath: m_Height
-      value: 12.34
-      objectReference: {fileID: 0}
-    - target: {fileID: 5645734257185033169, guid: 3e91b047879890d499a1dcac03e1210a, type: 3}
-      propertyPath: m_Radius
-      value: 2.6
-      objectReference: {fileID: 0}
-    - target: {fileID: 5645734257185033169, guid: 3e91b047879890d499a1dcac03e1210a, type: 3}
-      propertyPath: m_Center.y
-      value: -0.94
-      objectReference: {fileID: 0}
-    - target: {fileID: 5645734257185033169, guid: 3e91b047879890d499a1dcac03e1210a, type: 3}
-      propertyPath: m_Direction
-      value: 0
-      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -54423,6 +54407,10 @@ PrefabInstance:
     - target: {fileID: 5221738718419502695, guid: 09c7ba42738258a47bfaad25b5ab5ee7, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6393538749278331634, guid: 09c7ba42738258a47bfaad25b5ab5ee7, type: 3}
+      propertyPath: m_AdditionalShaderChannelsFlag
+      value: 25
       objectReference: {fileID: 0}
     - target: {fileID: 8488008983044618847, guid: 09c7ba42738258a47bfaad25b5ab5ee7, type: 3}
       propertyPath: m_Name
