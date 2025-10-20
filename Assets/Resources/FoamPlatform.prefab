@@ -16,7 +16,7 @@ GameObject:
   - component: {fileID: 8082216114276783464}
   m_Layer: 6
   m_Name: FoamPlatform
-  m_TagString: Untagged
+  m_TagString: FoamPlatform
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0

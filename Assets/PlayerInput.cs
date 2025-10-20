@@ -154,6 +154,15 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Pickup"",
+                    ""type"": ""Button"",
+                    ""id"": ""5fb6381d-3f5d-4257-9b88-46dc3d93ff75"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -343,6 +352,17 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
                     ""action"": ""Select"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""13d5b852-4614-4c0a-8931-02bfc6791884"",
+                    ""path"": ""<Keyboard>/e"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Pickup"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -358,6 +378,7 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
         m_GamePlay_SecondaryAttack = m_GamePlay.FindAction("SecondaryAttack", throwIfNotFound: true);
         m_GamePlay_RightStickAction = m_GamePlay.FindAction("RightStickAction", throwIfNotFound: true);
         m_GamePlay_Select = m_GamePlay.FindAction("Select", throwIfNotFound: true);
+        m_GamePlay_Pickup = m_GamePlay.FindAction("Pickup", throwIfNotFound: true);
     }
 
     ~@PlayerInput()
@@ -445,6 +466,7 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
     private readonly InputAction m_GamePlay_SecondaryAttack;
     private readonly InputAction m_GamePlay_RightStickAction;
     private readonly InputAction m_GamePlay_Select;
+    private readonly InputAction m_GamePlay_Pickup;
     /// <summary>
     /// Provides access to input actions defined in input action map "GamePlay".
     /// </summary>
@@ -484,6 +506,10 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
         /// Provides access to the underlying input action "GamePlay/Select".
         /// </summary>
         public InputAction @Select => m_Wrapper.m_GamePlay_Select;
+        /// <summary>
+        /// Provides access to the underlying input action "GamePlay/Pickup".
+        /// </summary>
+        public InputAction @Pickup => m_Wrapper.m_GamePlay_Pickup;
         /// <summary>
         /// Provides access to the underlying input action map instance.
         /// </summary>
@@ -531,6 +557,9 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
             @Select.started += instance.OnSelect;
             @Select.performed += instance.OnSelect;
             @Select.canceled += instance.OnSelect;
+            @Pickup.started += instance.OnPickup;
+            @Pickup.performed += instance.OnPickup;
+            @Pickup.canceled += instance.OnPickup;
         }
 
         /// <summary>
@@ -563,6 +592,9 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
             @Select.started -= instance.OnSelect;
             @Select.performed -= instance.OnSelect;
             @Select.canceled -= instance.OnSelect;
+            @Pickup.started -= instance.OnPickup;
+            @Pickup.performed -= instance.OnPickup;
+            @Pickup.canceled -= instance.OnPickup;
         }
 
         /// <summary>
@@ -652,5 +684,12 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnSelect(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "Pickup" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnPickup(InputAction.CallbackContext context);
     }
 }
