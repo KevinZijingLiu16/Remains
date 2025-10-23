@@ -945,24 +945,11 @@ MonoBehaviour:
   currentWeaponDisplay: {fileID: 3917599745338550044}
   currentWeaponIcon: {fileID: 267556502730130989}
   currentWeaponText: {fileID: 764595032471771731}
-  moveAction:
-    m_UseReference: 1
-    m_Action:
-      m_Name: Move
-      m_Type: 0
-      m_ExpectedControlType: 
-      m_Id: 99c6a348-1a8c-4648-9b75-28d2d409150c
-      m_Processors: 
-      m_Interactions: 
-      m_SingletonActionBindings: []
-      m_Flags: 0
-    m_Reference: {fileID: 4082227835250376965, guid: b447556366fb23b42aaea5a29fd1045e, type: 3}
+  allowMoveInput: 0
+  allowMouseInput: 1
   normalButtonColor: {r: 0, g: 0, b: 0, a: 0.5882353}
   selectedButtonColor: {r: 1, g: 1, b: 1, a: 1}
-  autoConfirmDelay: 1
-  inputCooldown: 0.15
   panelShowDuration: 0.3
-  allowMousePointer: 0
   enableDebugLogs: 1
 --- !u!1 &4785052327897846012
 GameObject:

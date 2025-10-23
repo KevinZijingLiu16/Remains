@@ -325,7 +325,7 @@ PrefabInstance:
       objectReference: {fileID: 2100000, guid: d9833e0a01d4bf140b1559b18cb59a46, type: 2}
     - target: {fileID: 919132149155446097, guid: 0ea622f53c7ba75408e36f596539ee28, type: 3}
       propertyPath: m_Name
-      value: T1N02
+      value: NPC_T1N02
       objectReference: {fileID: 0}
     - target: {fileID: 8188289717339804160, guid: 0ea622f53c7ba75408e36f596539ee28, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'

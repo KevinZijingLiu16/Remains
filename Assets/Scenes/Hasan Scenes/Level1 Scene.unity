@@ -3233,7 +3233,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   checkPoints: []
   autoFindCheckPoints: 1
-  showDebugInfo: 0
 --- !u!1001 &5348607433497849654
 PrefabInstance:
   m_ObjectHideFlags: 0
