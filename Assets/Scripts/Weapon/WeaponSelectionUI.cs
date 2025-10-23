@@ -22,7 +22,7 @@ public class WeaponSelectionUI : MonoBehaviour, IWeaponSelectionUI
     public TextMeshProUGUI currentWeaponText;
 
     [Header("Input Settings")]
-    public bool allowMoveInput = false;  
+    public bool allowMoveInput = false;  //set for controller
     public bool allowMouseInput = true;  
 
     [Header("Navigation Colors")]
