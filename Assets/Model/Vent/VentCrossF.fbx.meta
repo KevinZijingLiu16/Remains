@@ -3,7 +3,12 @@ guid: 8aba4db8433f7064e80b669f4eedb1c3
 ModelImporter:
   serializedVersion: 22200
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: VentCross
+    second: {fileID: 2100000, guid: 82903835f074479439b8df92c53a8aa8, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0

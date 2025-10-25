@@ -3,7 +3,12 @@ guid: 4d76bc12ed3e80047a09fb44e29ee926
 ModelImporter:
   serializedVersion: 22200
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: AirFlow
+    second: {fileID: 2100000, guid: e7125409d95a8b34b8eb69fbfc81aaa9, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0

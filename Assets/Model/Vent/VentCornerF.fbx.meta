@@ -3,7 +3,12 @@ guid: 4de858aebb2aa544e82bfb0d92462cbf
 ModelImporter:
   serializedVersion: 22200
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: VentCorner
+    second: {fileID: 2100000, guid: 394da303d0eee104c9f5693b9a75dae4, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0

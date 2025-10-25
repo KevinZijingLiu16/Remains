@@ -34,29 +34,45 @@ public class SplineRunnerRB : MonoBehaviour
     [Header("Visual (mesh only)")]
     [SerializeField] private Transform meshRoot;
     [SerializeField] private float _meshFacingOffsetY = 0f;
+
+  
+
     public float meshFacingOffsetY
     {
-        get { return _meshFacingOffsetY; }  
-        set { _meshFacingOffsetY = value; } 
+        get { return _meshFacingOffsetY; }
+        set { _meshFacingOffsetY = value; }
     }
-
     [Tooltip("Flip interpolation speed (0 = instant, 1 = very slow).")]
     [Range(0f, 1f)] public float meshFlipLerp = 0.25f;
     [SerializeField] private bool faceHorizontalOnly = true;
+
+    [Header("Audio")]
+    [SerializeField] private string moveSound = "motor";
+    [Tooltip("Volume of movement sound (0-1)")]
+    [SerializeField, Range(0f, 1f)] private float moveSoundVolume = 0.8f;
+    [Tooltip("Minimum input to start playing sound")]
+    [SerializeField, Range(0f, 1f)] private float minSpeedForSound = 0.1f;
+    [Tooltip("Fade speed when starting/stopping")]
+    [SerializeField] private float volumeFadeSpeed = 5f;
+    private float _currentSoundVolume = 0f;
+    private bool _isSoundPlaying = false;
+
+
+
 
     [Header("VFX")]
     [SerializeField] private ParticleSystem moveDust;
     [SerializeField, Range(0f, 1f)] private float minInputForDust = 0.1f;
     [SerializeField] private bool requireGroundedForDust = true;
 
- 
+
 
     private Rigidbody _rb;
     private SplineObjectMover _splineMover;
     private SplineTracker _splineTracker;
-  
 
-    private float _t = 0f;                  
+
+    private float _t = 0f;
     private float _cachedMove;
     private bool _cachedJump;
     private bool _grounded;
@@ -84,7 +100,7 @@ public class SplineRunnerRB : MonoBehaviour
         _splineMover = GetComponent<SplineObjectMover>();
         _splineTracker = GetComponent<SplineTracker>();
 
-        
+
         _rb.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ;
         _rb.interpolation = RigidbodyInterpolation.Interpolate;
         _rb.collisionDetectionMode = CollisionDetectionMode.Continuous;
@@ -97,15 +113,15 @@ public class SplineRunnerRB : MonoBehaviour
 
         if (!_splineTracker.IsValid())
         {
-           
+
             enabled = false;
             return;
         }
 
-        
+
         _splineTracker.RecomputeLength();
 
-       
+
         if (_skipInitialSnapOnce)
         {
             _skipInitialSnapOnce = false;
@@ -124,7 +140,7 @@ public class SplineRunnerRB : MonoBehaviour
 
     void Update()
     {
-    
+
         _cachedMove = moveAction.action != null ? moveAction.action.ReadValue<float>() : 0f;
         if (jumpAction.action != null && jumpAction.action.WasPressedThisFrame())
             _cachedJump = true;
@@ -133,7 +149,7 @@ public class SplineRunnerRB : MonoBehaviour
     void FixedUpdate()
     {
 
-        
+
         if (_forceHoldFrames > 0)
         {
             _rb.MovePosition(_forcedPosOnce);
@@ -142,23 +158,24 @@ public class SplineRunnerRB : MonoBehaviour
         }
 
         if (!_splineTracker.IsValid()) return;
-        
+
         _grounded = IsGrounded();
 
-    
+
         float control = _grounded ? 1f : Mathf.Clamp01(airControl);
 
-   
+
         HandleSplineMovement(control);
 
-        
+
         HandleJump();
 
-        
+
         UpdateOrientationWithStabilization();
 
-        
+
         UpdateVisualEffects();
+        UpdateMovementSound();
     }
 
     #endregion
@@ -173,7 +190,7 @@ public class SplineRunnerRB : MonoBehaviour
 
         float newT = _splineTracker.MoveAlongSpline(_t, speed, dt, direction);
 
-  
+
         var moveResult = _splineMover.MoveToSplinePosition(_rb, newT, _t, direction);
 
         if (moveResult.success)
@@ -181,7 +198,7 @@ public class SplineRunnerRB : MonoBehaviour
             _t = moveResult.finalT;
         }
 
-      
+
         if (Mathf.Abs(_cachedMove) > 0.001f)
             _lastMovePositive = _cachedMove > 0f;
     }
@@ -199,7 +216,7 @@ public class SplineRunnerRB : MonoBehaviour
         _cachedJump = false;
     }
 
- 
+
     private void UpdateOrientationWithStabilization()
     {
         Vector3 splineTangent = _splineTracker.GetWorldTangentAtT(_t);
@@ -217,21 +234,21 @@ public class SplineRunnerRB : MonoBehaviour
 
         if (useStrongRotationCorrection)
         {
-          
+
             float angleDiff = Quaternion.Angle(_rb.rotation, targetRotation);
 
             float lerpSpeed;
             if (angleDiff > maxRotationDeviation)
             {
-                
+
                 lerpSpeed = correctionRotationSpeed;
 
-             
+
                 _rb.angularVelocity = Vector3.zero;
             }
             else
             {
-                
+
                 lerpSpeed = _grounded ? normalRotationSpeed : normalRotationSpeed * 0.5f;
             }
 
@@ -239,7 +256,7 @@ public class SplineRunnerRB : MonoBehaviour
         }
         else
         {
-         
+
             float lerpSpeed = _grounded ? 0.2f : 0.1f;
             _rb.MoveRotation(Quaternion.Slerp(_rb.rotation, targetRotation, lerpSpeed));
         }
@@ -249,13 +266,13 @@ public class SplineRunnerRB : MonoBehaviour
     {
         if (meshRoot != null)
         {
-           
+
             Vector2 mousePos = Input.mousePosition;
 
-        
+
             bool mouseOnLeft = mousePos.x < Screen.width * 0.5f;
 
-         
+
             float targetAngle = (mouseOnLeft ? -180f : 0f) + _meshFacingOffsetY;
 
             Quaternion targetLocal = Quaternion.Euler(0f, 0f, targetAngle);  // ZÖá
@@ -265,7 +282,7 @@ public class SplineRunnerRB : MonoBehaviour
                 : Quaternion.Slerp(meshRoot.localRotation, targetLocal, meshFlipLerp);
         }
 
-    
+
         if (moveDust != null)
         {
             float dustYaw = _lastMovePositive ? 180f : 0f;
@@ -285,10 +302,10 @@ public class SplineRunnerRB : MonoBehaviour
     {
         if (resetAngularVelocityOnCollision && collision.rigidbody != null)
         {
-           
+
             _rb.angularVelocity = Vector3.zero;
 
-          
+
             Vector3 splineTangent = _splineTracker.GetWorldTangentAtT(_t);
             if (faceHorizontalOnly)
             {
@@ -314,7 +331,7 @@ public class SplineRunnerRB : MonoBehaviour
     {
         if (resetAngularVelocityOnCollision && collision.rigidbody != null)
         {
-            
+
             _rb.angularVelocity = Vector3.zero;
         }
     }
@@ -339,7 +356,7 @@ public class SplineRunnerRB : MonoBehaviour
         return _t;
     }
 
- 
+
     public void ResnapToWorldPosition(Vector3 worldPos)
     {
         if (!_splineTracker.IsValid()) return;
@@ -354,7 +371,7 @@ public class SplineRunnerRB : MonoBehaviour
         {
             _rb.position = snapPos;
             _forcedPosOnce = _rb.position;
-            _forceHoldFrames = 3; 
+            _forceHoldFrames = 3;
         }
     }
 
@@ -379,7 +396,7 @@ public class SplineRunnerRB : MonoBehaviour
         }
     }
 
-  
+
     [ContextMenu("Force Correct Rotation")]
     public void ForceCorrectRotation()
     {
@@ -410,12 +427,40 @@ public class SplineRunnerRB : MonoBehaviour
     //public void ExitFreeModeAndResnap()
     //{
     //    FreeMode = false;
-        
+
     //    ResnapToWorldPosition(transform.position);
     //}
 
     #endregion
 
+    #region Audio
+    private void UpdateMovementSound()
+    {
+        bool isMoving = Mathf.Abs(_cachedMove) > minSpeedForSound;
+        bool shouldPlay = isMoving && _grounded;
+
+        if (shouldPlay && !_isSoundPlaying)
+        {
+          
+            SoundManager.Instance?.PlayLoop(moveSound, moveSoundVolume);
+            _isSoundPlaying = true;
+        }
+        else if (!shouldPlay && _isSoundPlaying)
+        {
+          
+            SoundManager.Instance?.StopLoop();
+            _isSoundPlaying = false;
+        }
+
+      
+        if (_isSoundPlaying)
+        {
+            float speedFactor = Mathf.Abs(_cachedMove);
+            SoundManager.Instance?.SetLoopVolume(moveSoundVolume * speedFactor);
+        }
+    }
+
+    #endregion
 
     #region Utility
 
@@ -437,11 +482,11 @@ public class SplineRunnerRB : MonoBehaviour
             Gizmos.color = Color.magenta;
             Gizmos.DrawWireSphere(_rb.worldCenterOfMass + groundCheckOffset, groundCheckRadius);
 
-           
+
             Gizmos.color = Color.blue;
             Gizmos.DrawRay(transform.position, transform.forward * 2f);
 
-           
+
             if (_splineTracker != null && _splineTracker.IsValid())
             {
                 Vector3 splineDir = _splineTracker.GetWorldTangentAtT(_t);

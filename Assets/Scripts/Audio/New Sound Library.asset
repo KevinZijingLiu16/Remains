@@ -13,5 +13,17 @@ MonoBehaviour:
   m_Name: New Sound Library
   m_EditorClassIdentifier: 
   sounds:
-  - name: 
-    clip: {fileID: 0}
+  - name: motor
+    clip: {fileID: 8300000, guid: cbcc56d2970e0ea48803bfad907bc55e, type: 3}
+  - name: BatteryLow
+    clip: {fileID: 8300000, guid: 23776d9980687f24e9cd09800035b61b, type: 3}
+  - name: Checkpoint
+    clip: {fileID: 8300000, guid: ed61cfc25157aba4daa96dc71b6b5818, type: 3}
+  - name: OpenningUI
+    clip: {fileID: 8300000, guid: 6edf0cc5c533c074da97ba2f0db1525e, type: 3}
+  - name: spraylong
+    clip: {fileID: 8300000, guid: 1e1547d9b146ef94ca073b9d181361a9, type: 3}
+  - name: sprayshort
+    clip: {fileID: 8300000, guid: 1d7fe9d774fefc7419d3524336931de2, type: 3}
+  - name: ThemeTrack
+    clip: {fileID: 8300000, guid: ea8fc1f79484b074da306079759f2253, type: 3}
