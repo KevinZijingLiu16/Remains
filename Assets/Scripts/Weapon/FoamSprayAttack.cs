@@ -91,4 +91,14 @@ public class FoamSprayAttack : IWeaponAttackBehavior
             damageable?.TakeDamage(1); 
         }
     }
+
+    public string GetAttackLoopSoundName()
+    {
+        throw new System.NotImplementedException();
+    }
+
+    public bool HasLoopSound()
+    {
+        throw new System.NotImplementedException();
+    }
 }

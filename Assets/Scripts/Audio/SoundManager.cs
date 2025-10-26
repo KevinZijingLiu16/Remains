@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections.Generic;
 
 public class SoundManager : MonoBehaviour, ISoundPlayer
 {
@@ -10,6 +11,8 @@ public class SoundManager : MonoBehaviour, ISoundPlayer
 
     private float _volume = 1f;
 
+    private Dictionary<string, AudioSource> _namedLoopSources = new Dictionary<string, AudioSource>();
+
     private void Awake()
     {
         if (Instance != null)
@@ -19,6 +22,16 @@ public class SoundManager : MonoBehaviour, ISoundPlayer
         }
         Instance = this;
         DontDestroyOnLoad(gameObject);
+        AudioListener listener = FindFirstObjectByType<AudioListener>();
+        if (listener == null)
+        {
+            Debug.LogError("[SoundManager] No AudioListener found in scene!");
+            Camera.main?.gameObject.AddComponent<AudioListener>();
+        }
+        else
+        {
+            Debug.Log($"[SoundManager] AudioListener found on: {listener.gameObject.name}");
+        }
 
         if (loopSource != null)
         {
@@ -34,38 +47,28 @@ public class SoundManager : MonoBehaviour, ISoundPlayer
         {
             sfxSource.PlayOneShot(clip, _volume);
         }
+        else
+        {
+            Debug.LogWarning($"[SoundManager] Sound not found: {soundName}");
+        }
     }
 
     public void PlayLoop(string soundName, float volume = 1f)
     {
-        Debug.Log($"PlayLoop 被调用: {soundName}, volume: {volume}");
-
         var clip = soundLibrary.GetClip(soundName);
-        if (clip == null)
+        if (clip != null && loopSource != null)
         {
-            Debug.LogError($"找不到音效: {soundName}");
-            return;
-        }
+            if (loopSource.clip != clip)
+            {
+                loopSource.clip = clip;
+            }
 
-        if (loopSource == null)
-        {
-            Debug.LogError("loopSource 未分配！");
-            return;
-        }
+            loopSource.volume = Mathf.Clamp01(volume) * _volume;
 
-        Debug.Log($"成功获取音效片段: {clip.name}");
-
-        if (loopSource.clip != clip)
-        {
-            loopSource.clip = clip;
-        }
-
-        loopSource.volume = Mathf.Clamp01(volume) * _volume;
-
-        if (!loopSource.isPlaying)
-        {
-            loopSource.Play();
-            Debug.Log("开始播放循环音效");
+            if (!loopSource.isPlaying)
+            {
+                loopSource.Play();
+            }
         }
     }
 
@@ -85,10 +88,89 @@ public class SoundManager : MonoBehaviour, ISoundPlayer
         }
     }
 
+  
+    public void PlayNamedLoop(string identifier, string soundName, float volume = 1f)
+    {
+        var clip = soundLibrary.GetClip(soundName);
+        if (clip == null)
+        {
+            Debug.LogWarning($"[SoundManager] Sound not found: {soundName}");
+            return;
+        }
+
+       
+        if (!_namedLoopSources.TryGetValue(identifier, out AudioSource source))
+        {
+            GameObject sourceObj = new GameObject($"AudioSource_{identifier}");
+            sourceObj.transform.SetParent(transform);
+            source = sourceObj.AddComponent<AudioSource>();
+            source.loop = true;
+            source.playOnAwake = false;
+            _namedLoopSources[identifier] = source;
+        }
+
+     
+        if (source.clip != clip)
+        {
+            source.clip = clip;
+        }
+
+        source.volume = Mathf.Clamp01(volume) * _volume;
+
+        if (!source.isPlaying)
+        {
+            source.Play();
+        }
+    }
+
+    public void StopNamedLoop(string identifier)
+    {
+        if (_namedLoopSources.TryGetValue(identifier, out AudioSource source))
+        {
+            if (source != null && source.isPlaying)
+            {
+                source.Stop();
+            }
+        }
+    }
+
+    public void SetNamedLoopVolume(string identifier, float volume)
+    {
+        if (_namedLoopSources.TryGetValue(identifier, out AudioSource source))
+        {
+            if (source != null)
+            {
+                source.volume = Mathf.Clamp01(volume) * _volume;
+            }
+        }
+    }
+
     public void SetVolume(float volume)
     {
         _volume = Mathf.Clamp01(volume);
+
+      
+        foreach (var source in _namedLoopSources.Values)
+        {
+            if (source != null)
+            {
+                source.volume *= _volume;
+            }
+        }
     }
 
     public float GetVolume() => _volume;
+
+    private void OnDestroy()
+    {
+       
+        foreach (var source in _namedLoopSources.Values)
+        {
+            if (source != null)
+            {
+                Destroy(source.gameObject);
+            }
+        }
+        _namedLoopSources.Clear();
+    }
 }

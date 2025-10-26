@@ -29,3 +29,5 @@ MonoBehaviour:
     sprite: {fileID: 21300000, guid: 8945b14d227cd1541bbbf5f00ac169d8, type: 3}
   - key: Charging
     sprite: {fileID: 21300000, guid: 9ff7b396456893a4abeabb32d1eecbd0, type: 3}
+  - key: React_Airblow
+    sprite: {fileID: 21300000, guid: 63bf6c02745c0124a926427796aaac7f, type: 3}
