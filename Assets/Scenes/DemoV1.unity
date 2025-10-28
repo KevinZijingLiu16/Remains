@@ -53772,6 +53772,26 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 8873849828373940782, guid: 9a5ae1fa9d918ef4193b95a3ce48e5be, type: 3}
+      propertyPath: allowMoveInput
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8873849828373940782, guid: 9a5ae1fa9d918ef4193b95a3ce48e5be, type: 3}
+      propertyPath: allowMousePointer
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8873849828373940782, guid: 9a5ae1fa9d918ef4193b95a3ce48e5be, type: 3}
+      propertyPath: normalButtonColor.b
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8873849828373940782, guid: 9a5ae1fa9d918ef4193b95a3ce48e5be, type: 3}
+      propertyPath: normalButtonColor.g
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8873849828373940782, guid: 9a5ae1fa9d918ef4193b95a3ce48e5be, type: 3}
+      propertyPath: normalButtonColor.r
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
