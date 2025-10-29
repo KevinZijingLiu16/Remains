@@ -31,3 +31,7 @@ MonoBehaviour:
     sprite: {fileID: 21300000, guid: 9ff7b396456893a4abeabb32d1eecbd0, type: 3}
   - key: React_Airblow
     sprite: {fileID: 21300000, guid: 63bf6c02745c0124a926427796aaac7f, type: 3}
+  - key: Warning
+    sprite: {fileID: 21300000, guid: 1246ab5609d0ae341a44f75d30d88e7e, type: 3}
+  - key: AddHealth
+    sprite: {fileID: 21300000, guid: c7e47006e65eece479226edebb320699, type: 3}

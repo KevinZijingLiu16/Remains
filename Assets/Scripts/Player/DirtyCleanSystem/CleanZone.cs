@@ -4,12 +4,12 @@ using UnityEngine;
 public class CleanZone : MonoBehaviour
 {
     [Header("Clean Settings")]
-    [SerializeField] private bool cleanAllParts = true;     // 全部一起清洁
-    [SerializeField] private int partsToClean = 1;          // 若非全清洁，每帧随机清洁几个
-    [SerializeField, Tooltip("每秒清洁多少(0~1)，0.25=约4秒从全黑到干净")]
+    [SerializeField] private bool cleanAllParts = true;     
+    [SerializeField] private int partsToClean = 1;         
+    [SerializeField]
     private float cleanPerSecond = 0.25f;
 
-    [Header("Enter Boost (可选：进入时先清一点)")]
+ 
     [SerializeField] private bool cleanOnEnter = false;
     [SerializeField, Range(0f, 1f)] private float enterCleanAmount = 0.1f;
 

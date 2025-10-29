@@ -8,14 +8,14 @@ public class PlayerDirtSystem : MonoBehaviour
     [SerializeField] private List<BodyPart> bodyParts = new List<BodyPart>();
 
     [Header("Materials")]
-    [SerializeField] private Material dirtyMaterial; // 兼容你的旧接口
+    [SerializeField] private Material dirtyMaterial; 
 
     [Header("Dirt Blend Settings")]
-    [SerializeField, Tooltip("脏污目标的金属度(0~1)")]
+    [SerializeField]
     private float targetMetallic = 0.8f;
-    [SerializeField, Tooltip("脏污目标的光滑度(0~1)")]
+    [SerializeField]
     private float targetSmoothness = 0.9f;
-    [SerializeField, Tooltip("变黑时额外的颜色偏移，可保持微弱绿感")]
+    [SerializeField]
     private Color dirtTint = new Color(0.05f, 0.1f, 0.05f, 0f);
 
     [Header("Debug")]
@@ -23,7 +23,6 @@ public class PlayerDirtSystem : MonoBehaviour
 
     private int _dirtyPartsCount = 0;
 
-    // Events（保持不变）...
     public System.Action<int, int> OnDirtChanged;
     public System.Action OnBecameDirty;
     public System.Action OnBecameClean;
@@ -36,7 +35,7 @@ public class PlayerDirtSystem : MonoBehaviour
     public bool IsFullyClean => _dirtyPartsCount == 0;
     public bool IsFullyDirty => _dirtyPartsCount == bodyParts.Count;
 
-    // 常用的属性ID（URP 使用 _BaseColor，内置管线使用 _Color）
+  
     private static readonly int BaseColorID = Shader.PropertyToID("_BaseColor");
     private static readonly int ColorID = Shader.PropertyToID("_Color");
     private static readonly int MetallicID = Shader.PropertyToID("_Metallic");
@@ -55,13 +54,13 @@ public class PlayerDirtSystem : MonoBehaviour
         {
             if (!part.renderer) continue;
 
-            // 兼容你原来的“还原材质”逻辑：
+          
             if (part.changeAllMaterials)
                 part.originalMaterials = part.renderer.materials;
             else if (part.materialIndex >= 0 && part.materialIndex < part.renderer.materials.Length)
                 part.originalMaterial = part.renderer.materials[part.materialIndex];
 
-            // —— 新增：记录原始参数（读取 sharedMaterials，避免实例化）
+           
             Material srcMat = null;
             var shared = part.renderer.sharedMaterials;
             if (shared != null && shared.Length > 0)
@@ -92,7 +91,7 @@ public class PlayerDirtSystem : MonoBehaviour
         _dirtyPartsCount = 0;
     }
 
-    // === 新增：连续脏污 API ===================================
+ 
 
     public void AddDirtToAll(float delta)
     {
@@ -123,7 +122,7 @@ public class PlayerDirtSystem : MonoBehaviour
         float before = part.dirtLevel;
         part.dirtLevel = Mathf.Clamp01(part.dirtLevel + delta);
 
-        // “从0到>0”算作变脏一次，保持你原本事件统计
+     
         if (before <= 0f && part.dirtLevel > 0f)
         {
             part.isDirty = true;
@@ -134,17 +133,17 @@ public class PlayerDirtSystem : MonoBehaviour
 
         ApplyDirtBlend(part);
 
-        // “满黑”不做特殊处理；如果需要可在此触发事件
+       
     }
 
     private void ApplyDirtBlend(BodyPart part)
     {
-        // 颜色：从原色 -> 偏黑 + 轻微绿
+      
         Color target = Color.Lerp(part.baseColor, Color.black + dirtTint, part.dirtLevel);
         float metallic = Mathf.Lerp(part.baseMetallic, targetMetallic, part.dirtLevel);
         float smoothness = Mathf.Lerp(part.baseSmoothness, targetSmoothness, part.dirtLevel);
 
-        // 给指定 submesh 设置 MPB；如需全材质就循环所有 submesh
+     
         if (part.changeAllMaterials)
         {
             int subCount = part.renderer.sharedMaterials?.Length ?? 1;
@@ -184,7 +183,7 @@ public class PlayerDirtSystem : MonoBehaviour
         }
     }
 
-    // 从所有部位减少脏污
+  
     public void RemoveDirtFromAll(float delta)
     {
         bool wasAnyDirty = IsAnyDirty;
@@ -195,7 +194,7 @@ public class PlayerDirtSystem : MonoBehaviour
             OnBecameClean?.Invoke();
     }
 
-    // 从若干部位随机减少脏污（只挑“>0”的）
+ 
     public void RemoveDirtFromRandom(int count, float delta)
     {
         var dirtyParts = bodyParts.FindAll(p => p.dirtLevel > 0f);
@@ -209,7 +208,7 @@ public class PlayerDirtSystem : MonoBehaviour
         }
     }
 
-    // 内部：降低单个部位的 dirtLevel 并更新显示/事件
+
     private void DecreaseDirtLevel(BodyPart part, float delta)
     {
         if (!part?.renderer) return;
@@ -217,7 +216,7 @@ public class PlayerDirtSystem : MonoBehaviour
         float before = part.dirtLevel;
         part.dirtLevel = Mathf.Clamp01(part.dirtLevel - delta);
 
-        // 从“>0”降到“=0”视为清洁完成，触发事件与计数
+       
         if (before > 0f && part.dirtLevel <= 0f)
         {
             if (part.isDirty)
@@ -229,7 +228,7 @@ public class PlayerDirtSystem : MonoBehaviour
             }
         }
 
-        // 实时刷新外观（与增加脏污时同一个 ApplyDirtBlend）
+       
         ApplyDirtBlend(part);
     }
 

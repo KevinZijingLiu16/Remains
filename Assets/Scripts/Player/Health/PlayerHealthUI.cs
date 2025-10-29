@@ -6,7 +6,7 @@ using System.Collections;
 public class PlayerHealthUI : MonoBehaviour, IHealthUI
 {
     [Header("UI References")]
-    [SerializeField] private Image[] heartImages = new Image[3];
+    [SerializeField] private Image[] heartImages;
     [SerializeField] private bool useAnimations = true; 
     [SerializeField] private bool useHealEffect = false; 
 
@@ -22,20 +22,19 @@ public class PlayerHealthUI : MonoBehaviour, IHealthUI
     [SerializeField] private Color healColor = Color.green;
     [SerializeField] private float healEffectDuration = 0.5f;
 
-    private Coroutine[] heartAnimations = new Coroutine[3];
+    private Coroutine[] heartAnimations;
 
     void Start()
     {
-     
-        if (heartImages[0] == null)
+       
+        heartAnimations = new Coroutine[heartImages.Length];
+
+        if (heartImages.Length > 0 && heartImages[0] == null)
         {
             AutoFindHeartImages();
         }
 
-       
         ValidateUISetup();
-
-      
         InitializeHeartStates();
     }
 

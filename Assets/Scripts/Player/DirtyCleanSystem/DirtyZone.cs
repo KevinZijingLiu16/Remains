@@ -9,7 +9,7 @@ public class DirtZone : MonoBehaviour
     [SerializeField] private bool onlyTriggerOnce = false;
 
     [Header("Continuous Dirt")]
-    [SerializeField, Tooltip("每秒增加多少脏污(0~1)，比如 0.2 表示约5秒从干净到全黑")]
+    [SerializeField]
     private float dirtPerSecond = 0.2f;
 
     [Header("Debug")]
@@ -35,8 +35,7 @@ public class DirtZone : MonoBehaviour
         var dirtSystem = other.GetComponent<PlayerDirtSystem>();
         if (!dirtSystem) return;
 
-        // 可选：进入时就先给一点点脏污的“起步值”
-        // dirtSystem.AddDirtToAll(0.05f);
+    
 
         _hasTriggered = true;
 
