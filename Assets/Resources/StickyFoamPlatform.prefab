@@ -14,7 +14,6 @@ GameObject:
   - component: {fileID: 8724697663506390342}
   - component: {fileID: -6578358333409829061}
   - component: {fileID: 6860225954786132399}
-  - component: {fileID: 1658808833504034495}
   m_Layer: 11
   m_Name: StickyFoamPlatform
   m_TagString: Untagged
@@ -136,13 +135,14 @@ MonoBehaviour:
   stickForce: 100
   canStickToFoam: 1
   lifetime: 20
+  freezeBeforeDestroy: 2
   stepHeight: 1
   playerLayer:
     serializedVersion: 2
     m_Bits: 512
   unstuckColor: {r: 1, g: 1, b: 1, a: 1}
-  stuckColor: {r: 0, g: 1, b: 1, a: 1}
-  foamMaterial: {fileID: 2100000, guid: 421e78f4ac395ed4d9d82e67feda29e0, type: 2}
+  stuckColor: {r: 0.37832686, g: 1, b: 0.2688679, a: 1}
+  foamMaterial: {fileID: 2100000, guid: d66b59252470e8d40b75b0c55fd804c9, type: 2}
   enableTriggerControl: 1
 --- !u!136 &6860225954786132399
 CapsuleCollider:
@@ -164,27 +164,6 @@ CapsuleCollider:
   m_Enabled: 1
   serializedVersion: 2
   m_Radius: 0.23
-  m_Height: 10
+  m_Height: 64.5
   m_Direction: 0
   m_Center: {x: 0, y: 0, z: 0}
---- !u!65 &1658808833504034495
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7362176438172506803}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Size: {x: 8.29, y: 0.19, z: 1}
-  m_Center: {x: -1.1915348, y: 0, z: 0}

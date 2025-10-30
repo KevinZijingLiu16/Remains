@@ -13,7 +13,7 @@ public class PlatformColliderController : MonoBehaviour
 
     void Awake()
     {
-        // 获取自身的Collider组件
+       
         selfCollider = GetComponent<Collider>();
         stickyFoam = GetComponent<StickyFoamPlatform>();
 
@@ -43,7 +43,7 @@ public class PlatformColliderController : MonoBehaviour
     {
         if (other == null) return;
 
-        // 如果有StickyFoamPlatform组件且已经粘附，则不修改trigger状态
+       
         if (respectStickyFoamState && stickyFoam != null && stickyFoam.IsStuck)
         {
             if (enableDebugLogs)
@@ -53,7 +53,7 @@ public class PlatformColliderController : MonoBehaviour
 
         if (other.CompareTag("head"))
         {
-            // 碰到head标签的物体，设置为trigger
+           
             selfCollider.isTrigger = true;
 
             if (enableDebugLogs)
@@ -61,7 +61,7 @@ public class PlatformColliderController : MonoBehaviour
         }
         else if (other.CompareTag("wheel"))
         {
-            // 碰到wheel标签的物体，设置为非trigger
+            
             selfCollider.isTrigger = false;
 
             if (enableDebugLogs)
@@ -69,16 +69,11 @@ public class PlatformColliderController : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// 手动设置Collider状态（兼容StickyFoam）
-    /// </summary>
-    /// <param name="isTrigger">是否为trigger</param>
-    /// <param name="forceOverride">是否强制覆盖（忽略StickyFoam状态）</param>
+   
     public void SetTriggerState(bool isTrigger, bool forceOverride = false)
     {
         if (selfCollider == null) return;
 
-        // 检查是否需要尊重StickyFoam状态
         if (!forceOverride && respectStickyFoamState && stickyFoam != null && stickyFoam.IsStuck)
         {
             if (enableDebugLogs)
@@ -92,10 +87,6 @@ public class PlatformColliderController : MonoBehaviour
             Debug.Log($"[Manual] {gameObject.name} trigger state set to: {isTrigger}");
     }
 
-    /// <summary>
-    /// 获取当前trigger状态
-    /// </summary>
-    /// <returns>当前是否为trigger</returns>
     public bool IsTrigger()
     {
         return selfCollider != null ? selfCollider.isTrigger : false;

@@ -11,7 +11,8 @@ public class StickyFoamPlatform : MonoBehaviour, IFoamPlatform
 
     [Header("Platform Settings")]
     public float lifetime = 60f;
-    public float stepHeight = 0.4f;
+    public float freezeBeforeDestroy = 5f;
+    public float stepHeight = 0.2f;
     public LayerMask playerLayer = 1;
 
     [Header("Visual")]
@@ -25,6 +26,7 @@ public class StickyFoamPlatform : MonoBehaviour, IFoamPlatform
     private bool _isStuck = false;
     private bool _isTryingToStick = false;
     private Transform _stuckTo = null;
+    private bool _isFrozen = false;
     private Vector3 _stuckLocalPosition;
     private Quaternion _stuckLocalRotation;
     private float _creationTime;
@@ -33,6 +35,7 @@ public class StickyFoamPlatform : MonoBehaviour, IFoamPlatform
     private Rigidbody _rigidbody;
     private Renderer _renderer;
     private FixedJoint _stickJoint;
+    
 
     public bool IsSteppable => _isStuck;
     public float PlatformHeight => stepHeight;
@@ -65,14 +68,21 @@ public class StickyFoamPlatform : MonoBehaviour, IFoamPlatform
             }
         }
 
+        // 检查依附对象是否还存在
         if (_isStuck && _stuckTo == null)
         {
             UnstickFromSurface();
         }
 
+        // 生命周期管理：消失前冻结
+        float remainingTime = lifetime - (Time.time - _creationTime);
+        if (!_isFrozen && remainingTime <= freezeBeforeDestroy)
+        {
+            FreezeBeforeDestruction();
+        }
+
         UpdateVisualFeedback();
     }
-
     private void SetupFoamPhysics()
     {
         _rigidbody.mass = 0.1f;
@@ -232,14 +242,13 @@ public class StickyFoamPlatform : MonoBehaviour, IFoamPlatform
             _stickJoint = null;
         }
 
-        _rigidbody.isKinematic = false;
-        _rigidbody.linearDamping = 1f;
-        _rigidbody.angularDamping = 3f;
+        // 无论什么情况，unstick后都保持kinematic
+        // 不再恢复物理模拟
+        _rigidbody.isKinematic = true;
         _collider.isTrigger = true;
 
-        Debug.Log("[StickyFoamPlatform] Unstuck from surface");
+        Debug.Log("[StickyFoamPlatform] Unstuck from surface - staying kinematic");
     }
-
     void FixedUpdate()
     {
         if (_isStuck && _stuckTo != null && _stickJoint == null)
@@ -358,7 +367,24 @@ public class StickyFoamPlatform : MonoBehaviour, IFoamPlatform
             Destroy(_stickJoint);
         }
     }
+    private void FreezeBeforeDestruction()
+    {
+        _isFrozen = true;
 
+        if (_rigidbody != null)
+        {
+            // 先设置为kinematic，然后就不需要设置速度了
+            // 或者如果一定要设置，先设置速度再设置kinematic
+            if (!_rigidbody.isKinematic)
+            {
+                _rigidbody.linearVelocity = Vector3.zero;
+                _rigidbody.angularVelocity = Vector3.zero;
+            }
+            _rigidbody.isKinematic = true;
+        }
+
+        Debug.Log("[StickyFoamPlatform] Frozen before destruction to prevent floating");
+    }
     void OnDrawGizmosSelected()
     {
         Gizmos.color = _isStuck ? Color.green : Color.yellow;

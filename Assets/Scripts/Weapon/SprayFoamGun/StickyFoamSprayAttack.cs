@@ -149,7 +149,7 @@ public class StickyFoamSprayAttack : IWeaponAttackBehavior
     private void SpawnSingleStickyFoam(Transform weaponTransform, GameObject platformPrefab, int burstIndex)
     {
       
-        Vector3 spawnPosition = weaponTransform.position + weaponTransform.forward * 1f + weaponTransform.up * 0.8f;
+        Vector3 spawnPosition = weaponTransform.position + weaponTransform.forward * 1f + weaponTransform.up * 0.5f;
 
       
         Vector3 shootDirection = CalculateShootDirection(weaponTransform, burstIndex);
