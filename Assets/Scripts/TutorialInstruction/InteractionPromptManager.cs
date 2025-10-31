@@ -1,35 +1,60 @@
 using UnityEngine;
+using UnityEngine.UI;
 using TMPro;
 using System.Collections;
+using UnityEngine.Video;
 
-
-public class InteractionPromptManager : MonoBehaviour
+public class EnhancedInteractionPromptManager : MonoBehaviour
 {
-    public static InteractionPromptManager Instance { get; private set; }
+    public static EnhancedInteractionPromptManager Instance { get; private set; }
 
+    [Header("UI Components")]
+    public TextMeshProUGUI promptTextUI;
+    public Image promptImageUI;
+    public RawImage videoDisplayUI;
+    public VideoPlayer videoPlayer;
 
-    public TextMeshProUGUI promptUI;
+    [Header("Layout")]
+    public GameObject textContainer;
+    public GameObject imageContainer;
+    public GameObject videoContainer;
+    public GameObject promptPanel; // 整个提示面板
 
-
+    [Header("Settings")]
     public float fadeSpeed = 5f;
-
-
     public bool useFadeEffect = true;
-
-   
     public bool usePrioritySystem = true;
 
-    private CanvasGroup canvasGroup;
+    [Header("Default Sizes")]
+    public Vector2 defaultImageSize = new Vector2(200, 200);
+    public Vector2 defaultVideoSize = new Vector2(400, 300);
+
+    // 提示类型枚举
+    public enum PromptType
+    {
+        Text,
+        Image,
+        Video,
+        TextWithImage,
+        TextWithVideo
+    }
+
+    private CanvasGroup panelCanvasGroup;
     private float targetAlpha = 0f;
     private string currentText = "";
+    private Sprite currentImage = null;
+    private VideoClip currentVideo = null;
     private int currentPriority = 0;
+    private PromptType currentType = PromptType.Text;
     private Coroutine hideCoroutine;
+    private RenderTexture videoRenderTexture;
 
     private void Awake()
     {
         if (Instance == null)
         {
             Instance = this;
+            DontDestroyOnLoad(gameObject);
         }
         else
         {
@@ -42,45 +67,187 @@ public class InteractionPromptManager : MonoBehaviour
 
     private void InitializeUI()
     {
-        if (promptUI != null)
+        // 初始化主面板的CanvasGroup
+        if (promptPanel != null)
         {
-            canvasGroup = promptUI.GetComponent<CanvasGroup>();
-            if (canvasGroup == null && useFadeEffect)
+            panelCanvasGroup = promptPanel.GetComponent<CanvasGroup>();
+            if (panelCanvasGroup == null && useFadeEffect)
             {
-                canvasGroup = promptUI.gameObject.AddComponent<CanvasGroup>();
+                panelCanvasGroup = promptPanel.AddComponent<CanvasGroup>();
             }
 
-            if (useFadeEffect && canvasGroup != null)
+            if (useFadeEffect && panelCanvasGroup != null)
             {
-                canvasGroup.alpha = 0f;
+                panelCanvasGroup.alpha = 0f;
             }
             else
             {
-                promptUI.gameObject.SetActive(false);
+                promptPanel.SetActive(false);
             }
         }
-       
+
+        // 初始化视频播放器
+        if (videoPlayer != null && videoDisplayUI != null)
+        {
+            // 创建RenderTexture用于视频显示
+            videoRenderTexture = new RenderTexture(
+                (int)defaultVideoSize.x,
+                (int)defaultVideoSize.y,
+                16
+            );
+            videoPlayer.targetTexture = videoRenderTexture;
+            videoDisplayUI.texture = videoRenderTexture;
+
+            // 设置视频播放完成回调
+            videoPlayer.loopPointReached += OnVideoFinished;
+        }
+
+        // 初始隐藏所有容器
+        HideAllContainers();
     }
 
     private void Update()
     {
-        if (useFadeEffect && canvasGroup != null && promptUI != null)
+        if (useFadeEffect && panelCanvasGroup != null && promptPanel != null)
         {
-            canvasGroup.alpha = Mathf.Lerp(canvasGroup.alpha, targetAlpha, Time.deltaTime * fadeSpeed);
+            panelCanvasGroup.alpha = Mathf.Lerp(panelCanvasGroup.alpha, targetAlpha, Time.deltaTime * fadeSpeed);
 
-            if (canvasGroup.alpha < 0.01f && targetAlpha < 0.5f)
+            if (panelCanvasGroup.alpha < 0.01f && targetAlpha < 0.5f)
             {
-                promptUI.gameObject.SetActive(false);
+                promptPanel.SetActive(false);
+                StopVideo();
             }
         }
     }
 
+    #region 显示不同类型的提示
 
-    public void ShowPrompt(string text, int priority = 0)
+    // 显示纯文本提示
+    public void ShowTextPrompt(string text, int priority = 0)
     {
-        if (promptUI == null) return;
+        if (!CanShowPrompt(priority)) return;
 
-        
+        PrepareNewPrompt(priority);
+
+        currentType = PromptType.Text;
+        currentText = text;
+
+        if (promptTextUI != null)
+        {
+            promptTextUI.text = text;
+        }
+
+        ShowContainers(true, false, false);
+        ShowPanel();
+    }
+
+    // 显示纯图片提示
+    public void ShowImagePrompt(Sprite image, int priority = 0)
+    {
+        if (!CanShowPrompt(priority) || image == null) return;
+
+        PrepareNewPrompt(priority);
+
+        currentType = PromptType.Image;
+        currentImage = image;
+
+        if (promptImageUI != null)
+        {
+            promptImageUI.sprite = image;
+            promptImageUI.SetNativeSize();
+            FitImageToSize();
+        }
+
+        ShowContainers(false, true, false);
+        ShowPanel();
+    }
+
+    // 显示纯视频提示
+    public void ShowVideoPrompt(VideoClip video, int priority = 0, bool loop = false)
+    {
+        if (!CanShowPrompt(priority) || video == null) return;
+
+        PrepareNewPrompt(priority);
+
+        currentType = PromptType.Video;
+        currentVideo = video;
+
+        if (videoPlayer != null)
+        {
+            videoPlayer.clip = video;
+            videoPlayer.isLooping = loop;
+            videoPlayer.Play();
+        }
+
+        ShowContainers(false, false, true);
+        ShowPanel();
+    }
+
+    // 显示文本+图片提示
+    public void ShowTextWithImagePrompt(string text, Sprite image, int priority = 0)
+    {
+        if (!CanShowPrompt(priority)) return;
+
+        PrepareNewPrompt(priority);
+
+        currentType = PromptType.TextWithImage;
+        currentText = text;
+        currentImage = image;
+
+        if (promptTextUI != null)
+        {
+            promptTextUI.text = text;
+        }
+
+        if (promptImageUI != null && image != null)
+        {
+            promptImageUI.sprite = image;
+            FitImageToSize();
+        }
+
+        ShowContainers(true, image != null, false);
+        ShowPanel();
+    }
+
+    // 显示文本+视频提示
+    public void ShowTextWithVideoPrompt(string text, VideoClip video, int priority = 0, bool loop = false)
+    {
+        if (!CanShowPrompt(priority)) return;
+
+        PrepareNewPrompt(priority);
+
+        currentType = PromptType.TextWithVideo;
+        currentText = text;
+        currentVideo = video;
+
+        if (promptTextUI != null)
+        {
+            promptTextUI.text = text;
+        }
+
+        if (videoPlayer != null && video != null)
+        {
+            videoPlayer.clip = video;
+            videoPlayer.isLooping = loop;
+            videoPlayer.Play();
+        }
+
+        ShowContainers(true, false, video != null);
+        ShowPanel();
+    }
+
+    // 显示带图标的文本提示
+    public void ShowPromptWithIcon(string text, Sprite icon, int priority = 0)
+    {
+        ShowTextWithImagePrompt(text, icon, priority);
+    }
+
+    #endregion
+
+    #region 隐藏提示
+
+    public void HidePrompt(int priority = 0)
+    {
         if (usePrioritySystem && priority < currentPriority)
         {
             return;
@@ -92,62 +259,137 @@ public class InteractionPromptManager : MonoBehaviour
             hideCoroutine = null;
         }
 
-        currentText = text;
-        currentPriority = priority;
-        promptUI.text = text;
+        ResetPromptData();
 
-        
-        if (useFadeEffect && canvasGroup != null)
+        if (useFadeEffect && panelCanvasGroup != null)
         {
-            promptUI.gameObject.SetActive(true);
+            targetAlpha = 0f;
+        }
+        else if (promptPanel != null)
+        {
+            promptPanel.SetActive(false);
+            StopVideo();
+        }
+    }
+
+    public void ShowPromptTimed(string text, float duration, int priority = 0)
+    {
+        ShowTextPrompt(text, priority);
+        hideCoroutine = StartCoroutine(HideAfterDelay(duration, priority));
+    }
+
+    public void ShowImagePromptTimed(Sprite image, float duration, int priority = 0)
+    {
+        ShowImagePrompt(image, priority);
+        hideCoroutine = StartCoroutine(HideAfterDelay(duration, priority));
+    }
+
+    #endregion
+
+    #region 辅助方法
+
+    private bool CanShowPrompt(int priority)
+    {
+        if (promptPanel == null) return false;
+
+        if (usePrioritySystem && priority < currentPriority)
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    private void PrepareNewPrompt(int priority)
+    {
+        if (hideCoroutine != null)
+        {
+            StopCoroutine(hideCoroutine);
+            hideCoroutine = null;
+        }
+
+        StopVideo();
+        currentPriority = priority;
+    }
+
+    private void ShowContainers(bool showText, bool showImage, bool showVideo)
+    {
+        if (textContainer != null)
+            textContainer.SetActive(showText);
+
+        if (imageContainer != null)
+            imageContainer.SetActive(showImage);
+
+        if (videoContainer != null)
+            videoContainer.SetActive(showVideo);
+    }
+
+    private void HideAllContainers()
+    {
+        ShowContainers(false, false, false);
+    }
+
+    private void ShowPanel()
+    {
+        if (promptPanel == null) return;
+
+        if (useFadeEffect && panelCanvasGroup != null)
+        {
+            promptPanel.SetActive(true);
             targetAlpha = 1f;
         }
         else
         {
-            promptUI.gameObject.SetActive(true);
+            promptPanel.SetActive(true);
         }
-
     }
 
- 
-    public void HidePrompt(int priority = 0)
+    private void FitImageToSize()
     {
-        if (promptUI == null) return;
+        if (promptImageUI == null) return;
 
-     
-        if (usePrioritySystem && priority < currentPriority)
+        RectTransform rt = promptImageUI.GetComponent<RectTransform>();
+        if (rt != null)
         {
-            return;
-        }
+            // 保持宽高比适应默认大小
+            float imageRatio = promptImageUI.sprite.rect.width / promptImageUI.sprite.rect.height;
+            float targetRatio = defaultImageSize.x / defaultImageSize.y;
 
-        if (hideCoroutine != null)
+            if (imageRatio > targetRatio)
+            {
+                rt.sizeDelta = new Vector2(defaultImageSize.x, defaultImageSize.x / imageRatio);
+            }
+            else
+            {
+                rt.sizeDelta = new Vector2(defaultImageSize.y * imageRatio, defaultImageSize.y);
+            }
+        }
+    }
+
+    private void StopVideo()
+    {
+        if (videoPlayer != null && videoPlayer.isPlaying)
         {
-            StopCoroutine(hideCoroutine);
-            hideCoroutine = null;
+            videoPlayer.Stop();
         }
+    }
 
-     
+    private void OnVideoFinished(VideoPlayer vp)
+    {
+        // 视频播放完成的回调
+        if (!vp.isLooping)
+        {
+            Debug.Log("Video finished playing");
+        }
+    }
+
+    private void ResetPromptData()
+    {
         currentPriority = 0;
         currentText = "";
-
-      
-        if (useFadeEffect && canvasGroup != null)
-        {
-            targetAlpha = 0f;
-        }
-        else
-        {
-            promptUI.gameObject.SetActive(false);
-        }
-
-     
-    }
-
-
-    public void ShowPromptTimed(string text, float duration, int priority = 0)
-    {
-        ShowPrompt(text, priority);
-        hideCoroutine = StartCoroutine(HideAfterDelay(duration, priority));
+        currentImage = null;
+        currentVideo = null;
+        currentType = PromptType.Text;
     }
 
     private IEnumerator HideAfterDelay(float delay, int priority)
@@ -157,40 +399,34 @@ public class InteractionPromptManager : MonoBehaviour
         hideCoroutine = null;
     }
 
-    public void ForceHide()
-    {
-        currentPriority = 0;
-        currentText = "";
+    #endregion
 
-        if (hideCoroutine != null)
-        {
-            StopCoroutine(hideCoroutine);
-            hideCoroutine = null;
-        }
+    #region 公共获取方法
 
-        if (useFadeEffect && canvasGroup != null)
-        {
-            targetAlpha = 0f;
-        }
-        else if (promptUI != null)
-        {
-            promptUI.gameObject.SetActive(false);
-        }
-    }
-
-
-    public string GetCurrentText()
-    {
-        return currentText;
-    }
-
-    public int GetCurrentPriority()
-    {
-        return currentPriority;
-    }
+    public string GetCurrentText() => currentText;
+    public Sprite GetCurrentImage() => currentImage;
+    public VideoClip GetCurrentVideo() => currentVideo;
+    public int GetCurrentPriority() => currentPriority;
+    public PromptType GetCurrentType() => currentType;
 
     public bool IsShowingPrompt()
     {
-        return !string.IsNullOrEmpty(currentText) && currentPriority > 0;
+        return currentPriority > 0 &&
+               (currentType != PromptType.Text || !string.IsNullOrEmpty(currentText));
+    }
+
+    #endregion
+
+    private void OnDestroy()
+    {
+        if (videoRenderTexture != null)
+        {
+            videoRenderTexture.Release();
+        }
+
+        if (videoPlayer != null)
+        {
+            videoPlayer.loopPointReached -= OnVideoFinished;
+        }
     }
 }

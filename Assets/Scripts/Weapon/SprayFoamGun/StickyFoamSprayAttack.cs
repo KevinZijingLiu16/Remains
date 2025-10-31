@@ -14,7 +14,7 @@ public class StickyFoamSprayAttack : IWeaponAttackBehavior
     public GameObject stickyFoamPrefab; 
     public float foamSpawnInterval = 0.3f; 
     public int foamBurstCount = 1; 
-    public float burstSpread = 1f; 
+    public float burstSpread = 0f; 
 
     [Header("Foam Launch Settings")]
     public float minLaunchSpeed = 15f; 
