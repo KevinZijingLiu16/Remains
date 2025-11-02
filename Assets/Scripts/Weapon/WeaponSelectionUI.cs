@@ -27,8 +27,8 @@ public class WeaponSelectionUI : MonoBehaviour, IWeaponSelectionUI
     public InputActionReference confirmActionRef;
 
     [Header("Navigation Settings")]
-    public float gamepadNavigationDelay = 0.3f;  // 手柄导航延迟
-    public float mouseMovementThreshold = 5f;     // 鼠标移动检测阈值
+    public float gamepadNavigationDelay = 0.3f; 
+    public float mouseMovementThreshold = 5f;     
 
     [Header("Navigation Colors")]
     public Color normalButtonColor = Color.white;
@@ -51,7 +51,7 @@ public class WeaponSelectionUI : MonoBehaviour, IWeaponSelectionUI
     private IWeaponEquipmentManager _equipmentManager;
 
     private int _currentEquippedIndex = -1;
-    private int _highlightedIndex = 0;  // 当前高亮的索引
+    private int _highlightedIndex = 0; 
     private float _originalTimeScale;
     private bool _hasNoWeaponOption = false;
 
@@ -81,14 +81,11 @@ public class WeaponSelectionUI : MonoBehaviour, IWeaponSelectionUI
             return;
         }
 
-        // 订阅输入事件
         if (navigateActionRef.action != null)
         {
-            // 对于鼠标，需要started和performed
-            // 对于手柄，只需要performed
             navigateActionRef.action.performed += OnNavigate;
             navigateActionRef.action.started += OnNavigate;
-            navigateActionRef.action.canceled += OnNavigateCanceled; // 添加取消事件
+            navigateActionRef.action.canceled += OnNavigateCanceled; 
         }
 
         if (confirmActionRef.action != null)
@@ -97,30 +94,25 @@ public class WeaponSelectionUI : MonoBehaviour, IWeaponSelectionUI
         }
     }
 
-    // 添加取消处理
     private void OnNavigateCanceled(InputAction.CallbackContext context)
     {
-        // 可以在这里重置一些状态
         if (enableDebugLogs)
             Debug.Log($"[WeaponSelectionUI] Navigate canceled from: {context.control.path}");
     }
     void OnEnable()
     {
-        // 启用Actions
         navigateActionRef?.action?.Enable();
         confirmActionRef?.action?.Enable();
     }
 
     void OnDisable()
     {
-        // 禁用Actions
         navigateActionRef?.action?.Disable();
         confirmActionRef?.action?.Disable();
     }
 
     void OnDestroy()
     {
-        // 取消订阅
         if (navigateActionRef?.action != null)
         {
             navigateActionRef.action.performed -= OnNavigate;
@@ -143,13 +135,11 @@ public class WeaponSelectionUI : MonoBehaviour, IWeaponSelectionUI
     {
         if (!IsVisible) return;
 
-        // 更精确地判断输入来源
         string controlPath = context.control.path;
 
         if (enableDebugLogs)
             Debug.Log($"[WeaponSelectionUI] Navigate input from: {controlPath}");
 
-        // 判断输入类型
         if (controlPath.Contains("Mouse") || controlPath.Contains("Position"))
         {
             Vector2 mousePos = context.ReadValue<Vector2>();
@@ -159,7 +149,6 @@ public class WeaponSelectionUI : MonoBehaviour, IWeaponSelectionUI
         {
             Vector2 stickInput = context.ReadValue<Vector2>();
 
-            // 只在performed阶段处理手柄输入，避免重复
             if (context.phase == InputActionPhase.Performed)
             {
                 HandleGamepadNavigation(stickInput);
@@ -169,14 +158,12 @@ public class WeaponSelectionUI : MonoBehaviour, IWeaponSelectionUI
 
     private void HandleMouseNavigation(Vector2 mousePosition)
     {
-        // 检测鼠标是否真的在移动
         if (Vector2.Distance(mousePosition, _lastMousePosition) < mouseMovementThreshold)
             return;
 
         _isUsingMouse = true;
         _lastMousePosition = mousePosition;
 
-        // 检测鼠标在哪个按钮上
         int hoveredIndex = GetButtonIndexAtPosition(mousePosition);
 
         if (hoveredIndex >= 0 && hoveredIndex != _highlightedIndex)
@@ -191,31 +178,26 @@ public class WeaponSelectionUI : MonoBehaviour, IWeaponSelectionUI
 
     private void HandleGamepadNavigation(Vector2 stickInput)
     {
-        // 防止过快导航
         if (Time.unscaledTime - _lastGamepadNavigationTime < gamepadNavigationDelay)
             return;
 
-        // 增加死区，减少误触发
-        float deadZone = 0.7f; // 提高死区值
+        float deadZone = 0.7f; 
 
-        // 只处理明显的输入
         if (Mathf.Abs(stickInput.y) < deadZone && Mathf.Abs(stickInput.x) < deadZone)
             return;
 
         _isUsingMouse = false;
         _lastGamepadNavigationTime = Time.unscaledTime;
 
-        // 优先处理垂直方向
         if (Mathf.Abs(stickInput.y) > Mathf.Abs(stickInput.x))
         {
-            // 上下导航
             if (stickInput.y > deadZone)
             {
                 _highlightedIndex--;
                 if (_highlightedIndex < 0)
                     _highlightedIndex = _spawnedButtons.Count - 1;
             }
-            else if (stickInput.y < -deadZone) // 注意这里改为负值
+            else if (stickInput.y < -deadZone) 
             {
                 _highlightedIndex++;
                 if (_highlightedIndex >= _spawnedButtons.Count)
@@ -231,7 +213,6 @@ public class WeaponSelectionUI : MonoBehaviour, IWeaponSelectionUI
 
     private int GetButtonIndexAtPosition(Vector2 screenPosition)
     {
-        // 使用光线投射检测鼠标在哪个按钮上
         PointerEventData eventData = new PointerEventData(EventSystem.current);
         eventData.position = screenPosition;
 
@@ -242,7 +223,6 @@ public class WeaponSelectionUI : MonoBehaviour, IWeaponSelectionUI
         {
             GameObject hitObject = result.gameObject;
 
-            // 检查是否是我们的武器按钮
             for (int i = 0; i < _spawnedButtons.Count; i++)
             {
                 if (_spawnedButtons[i] == hitObject ||
@@ -260,7 +240,6 @@ public class WeaponSelectionUI : MonoBehaviour, IWeaponSelectionUI
     {
         if (!IsVisible) return;
 
-        // 无论是鼠标还是手柄，都选择当前高亮的项
         SelectWeaponAtIndex(_highlightedIndex);
 
         if (enableDebugLogs)
@@ -276,14 +255,12 @@ public class WeaponSelectionUI : MonoBehaviour, IWeaponSelectionUI
 
         if (index == 0 && _hasNoWeaponOption)
         {
-            // 选择了"无武器"
             if (enableDebugLogs)
                 Debug.Log("[WeaponSelectionUI] No Weapon selected!");
             OnWeaponUnequipRequested?.Invoke();
         }
         else
         {
-            // 选择了具体武器
             int weaponIndex = _hasNoWeaponOption ? index - 1 : index;
             if (weaponIndex >= 0 && weaponIndex < _currentWeapons.Count)
             {
@@ -310,14 +287,12 @@ public class WeaponSelectionUI : MonoBehaviour, IWeaponSelectionUI
     {
         if (buttonObj == null) return;
 
-        // 改变颜色
         var image = buttonObj.GetComponent<Image>();
         if (image != null)
         {
             image.color = highlighted ? selectedButtonColor : normalButtonColor;
         }
 
-        // 改变缩放
         var rt = buttonObj.GetComponent<RectTransform>();
         if (rt != null)
         {
@@ -325,7 +300,6 @@ public class WeaponSelectionUI : MonoBehaviour, IWeaponSelectionUI
         }
     }
 
-    // ... 保留所有其他方法不变 ...
 
     private IEnumerator DelayedInitializeEquipmentManager()
     {
@@ -370,13 +344,10 @@ public class WeaponSelectionUI : MonoBehaviour, IWeaponSelectionUI
 
         _hasNoWeaponOption = true;
 
-        // 获取当前装备的武器索引
         _currentEquippedIndex = GetCurrentEquippedIndex();
 
-        // 初始高亮当前装备的武器（如果有的话）
         _highlightedIndex = _currentEquippedIndex >= 0 ? _currentEquippedIndex : 0;
 
-        // 创建按钮
         CreateNoWeaponButton();
         for (int i = 0; i < availableWeapons.Length; i++)
         {
@@ -394,7 +365,6 @@ public class WeaponSelectionUI : MonoBehaviour, IWeaponSelectionUI
             StartCoroutine(FadeIn());
         }
 
-        // 更新视觉效果
         UpdateButtonVisuals();
     }
 
@@ -426,7 +396,6 @@ public class WeaponSelectionUI : MonoBehaviour, IWeaponSelectionUI
 
         ForceSetButtonIcon(buttonObj, noWeaponIcon, "No Weapon");
 
-        // 移除Button组件的onClick监听（我们用Input System处理）
         var button = buttonObj.GetComponent<Button>();
         if (button != null)
         {
@@ -444,7 +413,7 @@ public class WeaponSelectionUI : MonoBehaviour, IWeaponSelectionUI
 
         ForceSetButtonIcon(buttonObj, weapon.WeaponIcon, weapon.WeaponName);
 
-        // 移除Button组件的onClick监听（我们用Input System处理）
+  
         var button = buttonObj.GetComponent<Button>();
         if (button != null)
         {
