@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.AI;
 
 public class AnimalNPCStateMachine : NPCStateMachine, IStateFactory
 {
@@ -25,36 +26,114 @@ public class AnimalNPCStateMachine : NPCStateMachine, IStateFactory
     {
         base.Start();
 
-   
+      
+        ValidateAnimalConfiguration();
+
+     
         SwitchState(new AnimalPatrolState(this));
     }
 
 
+    private void ValidateAnimalConfiguration()
+    {
+     
+        if (patrolPoints == null || patrolPoints.Length == 0)
+        {
+            Debug.LogError($"[{animalType}] Patrol Points is null");
+        }
+        else
+        {
+          
+            int validCount = 0;
+            for (int i = 0; i < patrolPoints.Length; i++)
+            {
+                if (patrolPoints[i] == null)
+                {
+                    Debug.LogError($"[{animalType}] Patrol Point[{i}] is null£¡");
+                }
+                else
+                {
+                    validCount++;
+
+               
+                    NavMeshHit hit;
+                   
+                }
+            }
+        }
+
+        if (fleePoints == null || fleePoints.Length == 0)
+        {
+        }
+        else
+        {
+            int validCount = 0;
+            for (int i = 0; i < fleePoints.Length; i++)
+            {
+                if (fleePoints[i] != null)
+                {
+                    validCount++;
+
+                    
+                    NavMeshHit hit;
+                    if (!NavMesh.SamplePosition(fleePoints[i].position, out hit, 2f, NavMesh.AllAreas))
+                    {
+                        Debug.LogWarning($"[{animalType}] Flee Point[{i}] ({fleePoints[i].name}) ²»ÔÚ NavMesh ÉÏ£¡");
+                    }
+                }
+            }
+        }
+    }
+
+ 
     public Transform GetNearestFleePoint()
     {
-        if (fleePoints == null || fleePoints.Length == 0) return null;
-
-        Transform nearest = fleePoints[0];
-        float minDistance = Vector3.Distance(transform.position, nearest.position);
-
-        for (int i = 1; i < fleePoints.Length; i++)
+        if (fleePoints == null || fleePoints.Length == 0)
         {
-            float distance = Vector3.Distance(transform.position, fleePoints[i].position);
+            return null;
+        }
+
+   
+        Transform nearest = null;
+        float minDistance = float.MaxValue;
+
+        foreach (Transform point in fleePoints)
+        {
+            if (point == null) continue;
+
+            float distance = Vector3.Distance(transform.position, point.position);
             if (distance < minDistance)
             {
                 minDistance = distance;
-                nearest = fleePoints[i];
+                nearest = point;
             }
         }
+
+     
+      
 
         return nearest;
     }
 
-   
+
     public Transform GetRandomPatrolPoint()
     {
-        if (patrolPoints == null || patrolPoints.Length == 0) return null;
-        return patrolPoints[Random.Range(0, patrolPoints.Length)];
+        if (patrolPoints == null || patrolPoints.Length == 0)
+        {
+            return null;
+        }
+
+  
+        Transform[] validPoints = System.Array.FindAll(patrolPoints, point => point != null);
+
+        if (validPoints.Length == 0)
+        {
+            return null;
+        }
+
+        Transform selectedPoint = validPoints[Random.Range(0, validPoints.Length)];
+
+        return selectedPoint;
     }
 
 
@@ -73,15 +152,16 @@ public class AnimalNPCStateMachine : NPCStateMachine, IStateFactory
             case "Running":
                 return new AnimalRunningState(this);
             default:
-                Debug.LogWarning($"Unknown state: {stateName}");
                 return new AnimalIdleState(this);
         }
     }
 
-
     public override void OnTriggered(StateTransitionConfig config)
     {
-        if (!CanBeTriggered(config)) return;
+        if (!CanBeTriggered(config))
+        {
+            return;
+        }
 
         State newState = CreateState(config.targetStateName);
         if (newState != null)
@@ -93,11 +173,96 @@ public class AnimalNPCStateMachine : NPCStateMachine, IStateFactory
 
     public override bool CanBeTriggered(StateTransitionConfig config)
     {
-
+       
         if (currentState is AnimalRunningState)
         {
             return config.canInterruptRunning;
         }
+
         return base.CanBeTriggered(config);
+    }
+
+
+    protected override void OnDrawGizmos()
+    {
+        base.OnDrawGizmos();
+
+     
+        if (patrolPoints != null)
+        {
+            Gizmos.color = Color.green;
+            foreach (Transform point in patrolPoints)
+            {
+                if (point != null)
+                {
+                    Gizmos.DrawWireSphere(point.position, 0.5f);
+
+                 
+#if UNITY_EDITOR
+                    UnityEditor.Handles.Label(point.position + Vector3.up * 1f, point.name);
+#endif
+                }
+            }
+
+         
+            if (Application.isPlaying && currentState is AnimalPatrolState)
+            {
+                Gizmos.color = Color.yellow;
+                foreach (Transform point in patrolPoints)
+                {
+                    if (point != null)
+                    {
+                        Gizmos.DrawLine(transform.position, point.position);
+                    }
+                }
+            }
+        }
+
+        if (fleePoints != null)
+        {
+            Gizmos.color = Color.red;
+            foreach (Transform point in fleePoints)
+            {
+                if (point != null)
+                {
+                    Gizmos.DrawWireCube(point.position, Vector3.one * 0.5f);
+
+#if UNITY_EDITOR
+                    UnityEditor.Handles.Label(point.position + Vector3.up * 1f, point.name);
+#endif
+                }
+            }
+
+         
+            if (Application.isPlaying && currentState is AnimalRunningState)
+            {
+                Transform nearest = GetNearestFleePoint();
+                if (nearest != null)
+                {
+                    Gizmos.color = Color.red;
+                    Gizmos.DrawLine(transform.position, nearest.position);
+                }
+            }
+        }
+    }
+
+    protected override void OnDrawGizmosSelected()
+    {
+        base.OnDrawGizmosSelected();
+
+      
+        if (Application.isPlaying && currentState != null)
+        {
+#if UNITY_EDITOR
+            string stateInfo = $"State: {currentState.GetType().Name}\n";
+            stateInfo += $"Animal: {animalType}\n";
+            if (Agent != null)
+            {
+                stateInfo += $"On NavMesh: {Agent.isOnNavMesh}\n";
+                stateInfo += $"Speed: {Agent.velocity.magnitude:F2}";
+            }
+            UnityEditor.Handles.Label(transform.position + Vector3.up * 2f, stateInfo);
+#endif
+        }
     }
 }
