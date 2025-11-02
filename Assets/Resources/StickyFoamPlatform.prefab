@@ -618,8 +618,8 @@ MonoBehaviour:
   playerLayer:
     serializedVersion: 2
     m_Bits: 512
-  unstuckColor: {r: 1, g: 1, b: 1, a: 1}
-  stuckColor: {r: 0.5771845, g: 1, b: 0.504717, a: 0.46666667}
+  unstuckColor: {r: 1, g: 1, b: 1, a: 0.07058824}
+  stuckColor: {r: 1, g: 1, b: 1, a: 0.5019608}
   foamMaterial: {fileID: 2100000, guid: d66b59252470e8d40b75b0c55fd804c9, type: 2}
   enableTriggerControl: 1
   playerTag: Player
