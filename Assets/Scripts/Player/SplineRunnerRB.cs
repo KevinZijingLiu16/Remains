@@ -30,12 +30,26 @@ public class SplineRunnerRB : MonoBehaviour
     [Header("Input (New Input System)")]
     public InputActionProperty moveAction;
     public InputActionProperty jumpAction;
+    public InputActionProperty pointerPositionAction;  // <Pointer>/position
+    public InputActionProperty rightStickAction;       // <Gamepad>/rightStick
+
 
     [Header("Visual (mesh only)")]
     [SerializeField] private Transform meshRoot;
     [SerializeField] private float _meshFacingOffsetY = 0f;
 
+    [Header("Mesh Facing (Flip-Only)")]
+    public bool useFlipOnly = true;            
+    [Range(0f, 1f)] public float flipDeadzone = 0.15f;
+    public float lookSensitivity = 1.0f;
+
+    [Header("Flip Facing")]
+    
+
   
+    public float stickDeadzone = 0.15f;
+    public float centerHysteresisPx = 16f; // 中线阈值(像素)避免抖动
+
 
     public float meshFacingOffsetY
     {
@@ -110,6 +124,8 @@ public class SplineRunnerRB : MonoBehaviour
     {
         moveAction.action?.Enable();
         jumpAction.action?.Enable();
+        pointerPositionAction.action?.Enable();
+        rightStickAction.action?.Enable();
 
         if (!_splineTracker.IsValid())
         {
@@ -136,6 +152,8 @@ public class SplineRunnerRB : MonoBehaviour
     {
         moveAction.action?.Disable();
         jumpAction.action?.Disable();
+        pointerPositionAction.action?.Disable();
+        rightStickAction.action?.Disable();
     }
 
     void Update()
@@ -264,25 +282,48 @@ public class SplineRunnerRB : MonoBehaviour
 
     private void UpdateVisualEffects()
     {
-        if (meshRoot != null)
+        if (meshRoot == null) goto DUST;
+
+        // 读取两个输入
+        Vector2 stick = rightStickAction.action != null
+            ? rightStickAction.action.ReadValue<Vector2>()
+            : Vector2.zero;
+
+        Vector2 pointerPos = pointerPositionAction.action != null
+            ? pointerPositionAction.action.ReadValue<Vector2>()
+            : Vector2.zero;
+
+        // 决策：优先手柄（X 轴超出摇杆死区），否则用鼠标位置
+        bool useStick = Mathf.Abs(stick.x) > stickDeadzone;
+
+        if (useFlipOnly)
         {
+            float targetAngle;
 
-            Vector2 mousePos = Input.mousePosition;
+            if (useStick)
+            {
+                // 摇杆：X>0 朝右，X<0 朝左
+                targetAngle = (stick.x > 0f ? 0f : -180f) + meshFacingOffsetY;
+            }
+            else
+            {
+                // 鼠标：以屏幕中线为阈值 + 像素级迟滞，稳定翻转
+                float cx = Screen.width * 0.5f;
+                float dx = pointerPos.x - cx;
 
+                if (dx > centerHysteresisPx) targetAngle = 0f + meshFacingOffsetY;
+                else if (dx < -centerHysteresisPx) targetAngle = -180f + meshFacingOffsetY;
+                else targetAngle = meshRoot.localRotation.eulerAngles.z; // 保持
+            }
 
-            bool mouseOnLeft = mousePos.x < Screen.width * 0.5f;
-
-
-            float targetAngle = (mouseOnLeft ? -180f : 0f) + _meshFacingOffsetY;
-
-            Quaternion targetLocal = Quaternion.Euler(0f, 0f, targetAngle);  // Z轴
-
+            Quaternion targetLocal = Quaternion.Euler(0f, 0f, targetAngle);
             meshRoot.localRotation = (meshFlipLerp <= 0f)
                 ? targetLocal
                 : Quaternion.Slerp(meshRoot.localRotation, targetLocal, meshFlipLerp);
         }
 
-
+    DUST:
+        // 其余特效逻辑保持不变
         if (moveDust != null)
         {
             float dustYaw = _lastMovePositive ? 180f : 0f;
@@ -293,6 +334,8 @@ public class SplineRunnerRB : MonoBehaviour
         bool shouldPlayDust = inputMoving && (!requireGroundedForDust || _grounded);
         SetMoveDust(shouldPlayDust);
     }
+
+
     #endregion
 
     #region Collision Handling

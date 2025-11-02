@@ -97,7 +97,7 @@ public class EnemyAttackState : EnemyState
                     if (dirtSystem != null && dirtSystem.IsAnyDirty)
                     {
                     
-                        dirtSystem.RemoveDirtFromRandom(2, 0.5f); //(how many body parts, how much to clean for each part)
+                        dirtSystem.RemoveDirtFromRandom(2, 1f); //(how many body parts, how much to clean for each part)
                                                                   
                     }
 

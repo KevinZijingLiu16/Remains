@@ -1049,6 +1049,59 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!1 &7936504004685604381
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1755708824871900151}
+  - component: {fileID: 895008275167152662}
+  m_Layer: 0
+  m_Name: AntiCollistionWithPlatform
+  m_TagString: head
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1755708824871900151
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7936504004685604381}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 0, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 5221738718419502695}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &895008275167152662
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7936504004685604381}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1.4197364, y: 2.162279, z: 0.77949524}
+  m_Center: {x: 0.13190913, y: 0.96619904, z: 0.008972168}
 --- !u!1 &8100678954514590235
 GameObject:
   m_ObjectHideFlags: 0
@@ -1329,6 +1382,7 @@ RectTransform:
   - {fileID: 7064150957578112332}
   - {fileID: 8360700292262488055}
   - {fileID: 1654012394620977518}
+  - {fileID: 1755708824871900151}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
@@ -1459,8 +1513,37 @@ MonoBehaviour:
       m_SingletonActionBindings: []
       m_Flags: 0
     m_Reference: {fileID: 6932356325863392289, guid: b447556366fb23b42aaea5a29fd1045e, type: 3}
+  pointerPositionAction:
+    m_UseReference: 1
+    m_Action:
+      m_Name: Pointer Position
+      m_Type: 0
+      m_ExpectedControlType: 
+      m_Id: 64361f03-ee53-420d-a599-841713fab31f
+      m_Processors: 
+      m_Interactions: 
+      m_SingletonActionBindings: []
+      m_Flags: 0
+    m_Reference: {fileID: -6053271196121282555, guid: b447556366fb23b42aaea5a29fd1045e, type: 3}
+  rightStickAction:
+    m_UseReference: 1
+    m_Action:
+      m_Name: Right Stick
+      m_Type: 0
+      m_ExpectedControlType: 
+      m_Id: 1ff0688b-36d8-40c2-810e-ec4690d708cc
+      m_Processors: 
+      m_Interactions: 
+      m_SingletonActionBindings: []
+      m_Flags: 0
+    m_Reference: {fileID: -8641780472910549047, guid: b447556366fb23b42aaea5a29fd1045e, type: 3}
   meshRoot: {fileID: 7086439835199163245}
   _meshFacingOffsetY: 0
+  useFlipOnly: 1
+  flipDeadzone: 0.15
+  lookSensitivity: 1
+  stickDeadzone: 0.15
+  centerHysteresisPx: 16
   meshFlipLerp: 0.25
   faceHorizontalOnly: 1
   moveSound: motor
@@ -1496,7 +1579,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 170c3411b7f03c0468a9e241a1d4ff44, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  stickiness: 0.9
+  stickiness: 1
   decoupleYFromSpline: 1
   pushTransferRatio: 1
   pushMaxPerStep: 1
@@ -1546,9 +1629,21 @@ MonoBehaviour:
       m_SingletonActionBindings: []
       m_Flags: 0
     m_Reference: {fileID: 7532812278678353016, guid: b447556366fb23b42aaea5a29fd1045e, type: 3}
+  pointerPositionAction:
+    m_UseReference: 1
+    m_Action:
+      m_Name: Pointer Position
+      m_Type: 0
+      m_ExpectedControlType: 
+      m_Id: 893282cd-5ca5-41d2-9f0c-335cdc4645f8
+      m_Processors: 
+      m_Interactions: 
+      m_SingletonActionBindings: []
+      m_Flags: 0
+    m_Reference: {fileID: 2923056665984143110, guid: b447556366fb23b42aaea5a29fd1045e, type: 3}
   minX: -150
   maxX: 20
-  invertMouse: 1
+  invertPointer: 1
   invertController: 1
   controllerSensitivity: 1
   controllerCurve:
@@ -1884,12 +1979,12 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8488008983044618847}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1d0f8fd2def81f1418f6d6c01a285cf0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maxHealth: 3
+  maxHealth: 6
 --- !u!1 &8511831290017885930
 GameObject:
   m_ObjectHideFlags: 0

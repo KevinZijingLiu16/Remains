@@ -8,15 +8,16 @@ public class ArmAimer : MonoBehaviour
     [SerializeField] private Transform rightArmPivot;
     [SerializeField] private Camera cam;
 
-    [Header("Input Actions")]
-    [SerializeField] private InputActionProperty rightStickAction;
+    [Header("Input Actions (New Input System)")]
+    [SerializeField] private InputActionProperty rightStickAction;   // <Gamepad>/rightStick (Vector2)
+    [SerializeField] private InputActionProperty pointerPositionAction; // <Mouse>/position or <Pointer>/position (Vector2)
 
-    [Header("Mouse Input Mapping (mouse Y -> X rotation)")]
+    [Header("Mouse/Pointer Mapping (pointer Y -> X rotation)")]
     [SerializeField] private float minX = -60f;
     [SerializeField] private float maxX = 60f;
-    [SerializeField] private bool invertMouse = false;
+    [SerializeField] private bool invertPointer = false;
 
-    [Header("Controller Input Mapping (right stick Y -> X rotation)")]
+    [Header("Controller Mapping (right stick Y -> X rotation)")]
     [SerializeField] private bool invertController = false;
     [SerializeField] private float controllerSensitivity = 1f;
     [SerializeField] private AnimationCurve controllerCurve = AnimationCurve.Linear(0f, 0f, 1f, 1f);
@@ -28,11 +29,11 @@ public class ArmAimer : MonoBehaviour
     [SerializeField] private float rotateSpeed = 720f;
 
     [Header("Input Priority")]
-    [SerializeField] private bool preferController = false; // If true, controller input overrides mouse when both are active
+    [SerializeField] private bool preferController = false; // 若为 true，右摇杆优先
 
     [Header("Debug")]
     [SerializeField] private bool logAngleEachFrame = false;
-    [SerializeField] private int logEveryNFrames = 10; // 每多少帧打印一次，避免刷屏
+    [SerializeField] private int logEveryNFrames = 10;
 
     private Quaternion _baseLeftRot, _baseRightRot;
     private float _currentTargetOffsetX = 0f;
@@ -55,28 +56,15 @@ public class ArmAimer : MonoBehaviour
             return;
         }
 
-        // Store base rotations
         _baseLeftRot = leftArmPivot.localRotation;
         _baseRightRot = rightArmPivot.localRotation;
 
-        // Enable input
         EnableInput();
     }
 
-    void OnEnable()
-    {
-        EnableInput();
-    }
-
-    void OnDisable()
-    {
-        DisableInput();
-    }
-
-    void OnDestroy()
-    {
-        DisableInput();
-    }
+    void OnEnable() => EnableInput();
+    void OnDisable() => DisableInput();
+    void OnDestroy() => DisableInput();
 
     private void EnableInput()
     {
@@ -85,6 +73,11 @@ public class ArmAimer : MonoBehaviour
             rightStickAction.action.Enable();
             rightStickAction.action.performed += OnRightStickInput;
             rightStickAction.action.canceled += OnRightStickCanceled;
+        }
+
+        if (pointerPositionAction.action != null)
+        {
+            pointerPositionAction.action.Enable();
         }
     }
 
@@ -96,15 +89,20 @@ public class ArmAimer : MonoBehaviour
             rightStickAction.action.canceled -= OnRightStickCanceled;
             rightStickAction.action.Disable();
         }
+
+        if (pointerPositionAction.action != null)
+        {
+            pointerPositionAction.action.Disable();
+        }
     }
 
-    private void OnRightStickInput(InputAction.CallbackContext context)
+    private void OnRightStickInput(InputAction.CallbackContext ctx)
     {
-        _rightStickInput = context.ReadValue<Vector2>();
-        _hasControllerInput = _rightStickInput.magnitude > 0.1f; // Dead zone
+        _rightStickInput = ctx.ReadValue<Vector2>();
+        _hasControllerInput = _rightStickInput.magnitude > 0.1f; // deadzone
     }
 
-    private void OnRightStickCanceled(InputAction.CallbackContext context)
+    private void OnRightStickCanceled(InputAction.CallbackContext ctx)
     {
         _rightStickInput = Vector2.zero;
         _hasControllerInput = false;
@@ -112,123 +110,89 @@ public class ArmAimer : MonoBehaviour
 
     void Update()
     {
-        float targetOffsetX = 0f;
+        // 选择输入来源
+        bool useController = _hasControllerInput && (preferController || !HasPointerInside());
 
-        // Determine which input to use
-        bool useController = _hasControllerInput && (preferController || !HasSignificantMouseMovement());
+        float targetOffsetX = useController
+            ? GetControllerTargetOffset()
+            : GetPointerTargetOffset(); // 使用 pointer position（新输入系统）
 
-        if (useController)
-        {
-            targetOffsetX = GetControllerTargetOffset();
-        }
-        else
-        {
-            targetOffsetX = GetMouseTargetOffset();
-        }
+        _currentTargetOffsetX = Mathf.Clamp(targetOffsetX, minX, maxX);
 
-        _currentTargetOffsetX = targetOffsetX;
-
-        // Debug 打印角度（可开关 + 节流）
         if (logAngleEachFrame && (Time.frameCount % logEveryNFrames == 0))
         {
-            Debug.Log($"[ArmAimer] Current Aim Pitch: {_currentTargetOffsetX:F1}°");
+            Debug.Log($"[ArmAimer] Current Aim Pitch: {_currentTargetOffsetX:F1}° (useController={useController})");
         }
 
-        // Apply rotations to both arms
+        // 应用到左右臂
         ApplyLocalX(leftArmPivot, _baseLeftRot, _currentTargetOffsetX, rotateSpeed);
-
         float rightOffset = mirrorRight ? -_currentTargetOffsetX : _currentTargetOffsetX;
         ApplyLocalX(rightArmPivot, _baseRightRot, rightOffset, rotateSpeed);
     }
 
-    private bool HasSignificantMouseMovement()
+    // 判断指针是否在屏幕内（用新输入系统的 pointer position）
+    private bool HasPointerInside()
     {
-        // 简单检测鼠标是否在屏幕内
-        Vector3 mousePos = Input.mousePosition;
-        return mousePos.y > 0 && mousePos.y < Screen.height;
+        if (pointerPositionAction.action == null) return false;
+
+        Vector2 pos = pointerPositionAction.action.ReadValue<Vector2>();
+        return (pos.x >= 0f && pos.x <= Screen.width && pos.y >= 0f && pos.y <= Screen.height);
     }
 
-    private float GetMouseTargetOffset()
+    // 用 pointer 的 Y 位置映射到 X 旋转（保持你原先手感）
+    private float GetPointerTargetOffset()
     {
-        float mouseY = Input.mousePosition.y;
-        float t = Mathf.Clamp01(mouseY / Mathf.Max(1f, (float)Screen.height)); // 0..1
+        Vector2 pos = Vector2.zero;
 
-        if (invertMouse) t = 1f - t;
+        if (pointerPositionAction.action != null)
+        {
+            pos = pointerPositionAction.action.ReadValue<Vector2>();
+        }
+        else
+        {
+            // 兜底：若没绑定，尽量从新系统 Mouse 取
+            if (Mouse.current != null) pos = Mouse.current.position.ReadValue();
+        }
+
+        float t = Mathf.Clamp01(pos.y / Mathf.Max(1f, (float)Screen.height)); // 0..1
+        if (invertPointer) t = 1f - t;
 
         return Mathf.Lerp(minX, maxX, t);
     }
 
+    // 右摇杆 Y -> X 旋转
     private float GetControllerTargetOffset()
     {
-        // Use right stick Y axis for vertical aiming
         float stickY = _rightStickInput.y;
-
         if (invertController) stickY = -stickY;
 
-        // Apply sensitivity
         stickY *= controllerSensitivity;
 
-        // Apply curve for fine control
-        float curveInput = Mathf.Abs(stickY);
+        float curveInput = Mathf.Clamp01(Mathf.Abs(stickY));
         float curveOutput = controllerCurve.Evaluate(curveInput);
         stickY = Mathf.Sign(stickY) * curveOutput;
 
-        // Convert from -1..1 stick range to our min/max X range
         float centerX = (minX + maxX) * 0.5f;
         float rangeX = (maxX - minX) * 0.5f;
-
         return centerX + (stickY * rangeX);
     }
 
     static void ApplyLocalX(Transform pivot, Quaternion baseLocalRot, float offsetX, float speed)
     {
         Quaternion target = baseLocalRot * Quaternion.AngleAxis(offsetX, Vector3.right);
-
-        if (speed <= 0f)
-        {
-            pivot.localRotation = target;
-        }
-        else
-        {
-            pivot.localRotation = Quaternion.RotateTowards(
-                pivot.localRotation,
-                target,
-                speed * Time.deltaTime
-            );
-        }
+        if (speed <= 0f) pivot.localRotation = target;
+        else pivot.localRotation = Quaternion.RotateTowards(pivot.localRotation, target, speed * Time.deltaTime);
     }
 
-    // Debug information
     void OnDrawGizmosSelected()
     {
         if (!Application.isPlaying) return;
-
-        if (leftArmPivot != null)
-        {
-            Gizmos.color = Color.red;
-            Gizmos.DrawRay(leftArmPivot.position, leftArmPivot.forward * 2f);
-        }
-
-        if (rightArmPivot != null)
-        {
-            Gizmos.color = Color.blue;
-            Gizmos.DrawRay(rightArmPivot.position, rightArmPivot.forward * 2f);
-        }
+        if (leftArmPivot != null) { Gizmos.color = Color.red; Gizmos.DrawRay(leftArmPivot.position, leftArmPivot.forward * 2f); }
+        if (rightArmPivot != null) { Gizmos.color = Color.blue; Gizmos.DrawRay(rightArmPivot.position, rightArmPivot.forward * 2f); }
     }
 
-    // Public methods
-    public void SetTargetOffset(float offsetX)
-    {
-        _currentTargetOffsetX = Mathf.Clamp(offsetX, minX, maxX);
-    }
-
-    public float GetCurrentOffset()
-    {
-        return _currentTargetOffsetX;
-    }
-
-    public bool IsUsingController()
-    {
-        return _hasControllerInput;
-    }
+    // Public
+    public void SetTargetOffset(float offsetX) => _currentTargetOffsetX = Mathf.Clamp(offsetX, minX, maxX);
+    public float GetCurrentOffset() => _currentTargetOffsetX;
+    public bool IsUsingController() => _hasControllerInput;
 }
