@@ -21,7 +21,6 @@ public class AnimalPatrolState : AnimalNPCState
 
     public override void Enter()
     {
-        Debug.Log($"[{animalStateMachine.AnimalType}] 进入巡逻状态");
 
     
         if (animalStateMachine.Animator != null)
@@ -71,19 +70,16 @@ public class AnimalPatrolState : AnimalNPCState
      
         if (currentTarget == null)
         {
-            Debug.LogWarning($"[{animalStateMachine.AnimalType}] 当前目标为 null，重新选择");
             SelectNextPatrolPoint();
             return;
         }
 
         if (!animalStateMachine.Agent.isOnNavMesh)
         {
-            Debug.LogError($"[{animalStateMachine.AnimalType}] Agent 不在 NavMesh 上！");
             consecutiveFailures++;
 
             if (consecutiveFailures >= maxConsecutiveFailures)
             {
-                Debug.LogError($"[{animalStateMachine.AnimalType}] 连续失败 {maxConsecutiveFailures} 次，切换到 Idle");
                 animalStateMachine.SwitchState(new AnimalIdleState(animalStateMachine));
             }
             return;
@@ -155,7 +151,6 @@ public class AnimalPatrolState : AnimalNPCState
  
     private void OnArrival()
     {
-        Debug.Log($"[{animalStateMachine.AnimalType}] 到达巡逻点: {currentTarget.name}");
 
         waitingAtPoint = true;
         waitTimer = 0f;
@@ -173,7 +168,6 @@ public class AnimalPatrolState : AnimalNPCState
     public override void Exit()
     {
         StopMovement();
-        Debug.Log($"[{animalStateMachine.AnimalType}] 退出巡逻状态");
     }
 
     private void SelectNextPatrolPoint()
@@ -183,11 +177,10 @@ public class AnimalPatrolState : AnimalNPCState
 
         if (currentTarget != null)
         {
-            Debug.Log($"[{animalStateMachine.AnimalType}] 前往巡逻点: {currentTarget.name}");
+            Debug.Log($"[{animalStateMachine.AnimalType}] move to patrol point: {currentTarget.name}");
         }
         else
         {
-            Debug.LogError($"[{animalStateMachine.AnimalType}] 无法获取有效的巡逻点！切换到 Idle");
             animalStateMachine.SwitchState(new AnimalIdleState(animalStateMachine));
         }
     }
@@ -198,12 +191,11 @@ public class AnimalPatrolState : AnimalNPCState
      
         if (Random.value > 0.8f)
         {
-            Debug.Log($"[{animalStateMachine.AnimalType}] 切换到 Eating 状态");
             animalStateMachine.SwitchState(new AnimalEatingState(animalStateMachine));
         }
         else
         {
-            Debug.Log($"[{animalStateMachine.AnimalType}] 切换到 Idle 状态");
+           
             animalStateMachine.SwitchState(new AnimalIdleState(animalStateMachine));
         }
     }

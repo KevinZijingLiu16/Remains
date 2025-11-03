@@ -20218,9 +20218,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fc128b8e8849ebc4fb974ea2c9ba93d7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  promptType: 4
+  promptType: 3
   promptText: The tutorial is finishing but your journey just begins
-  promptImage: {fileID: 21300000, guid: 896004afbbfd3594586ffddb6bbb9db4, type: 3}
+  promptImage: {fileID: 21300000, guid: 9dd7dcf3252e39c4a93396f5a2017366, type: 3}
   iconImage: {fileID: 0}
   promptVideo: {fileID: 32900000, guid: ec8f8037783e2484b99afcae86243e1c, type: 3}
   loopVideo: 1
@@ -65757,7 +65757,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3881d32d3c23c4a43b1f4524cd38173c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  targetSceneName: DemoV1_Level1
+  targetSceneName: TempLevel1
   levelDisplayName: Level 1
   playerLayer:
     serializedVersion: 2
@@ -68508,6 +68508,10 @@ PrefabInstance:
     - target: {fileID: 1716849685324335692, guid: c34d07b0b9eb47c4cb5eb1d4f8563791, type: 3}
       propertyPath: m_Layer
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1716849685324335692, guid: c34d07b0b9eb47c4cb5eb1d4f8563791, type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 2122660826806743262, guid: c34d07b0b9eb47c4cb5eb1d4f8563791, type: 3}
       propertyPath: m_LocalPosition.x
@@ -216094,6 +216098,10 @@ PrefabInstance:
       propertyPath: collectEffect
       value: 
       objectReference: {fileID: 0}
+    - target: {fileID: 501632781035114917, guid: 562c96f1f9f04ed48be65be64cf8ec48, type: 3}
+      propertyPath: targetLevelName
+      value: TempLevel1
+      objectReference: {fileID: 0}
     - target: {fileID: 1804348061001226986, guid: 562c96f1f9f04ed48be65be64cf8ec48, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
@@ -216166,6 +216174,10 @@ PrefabInstance:
       propertyPath: m_Center.z
       value: 0.105371475
       objectReference: {fileID: 0}
+    - target: {fileID: 4997053662958763971, guid: 562c96f1f9f04ed48be65be64cf8ec48, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 9058579188832426187, guid: 562c96f1f9f04ed48be65be64cf8ec48, type: 3}
       propertyPath: m_LocalPosition.x
       value: -3.62
@@ -216197,6 +216209,10 @@ PrefabInstance:
     - target: {fileID: 9116789987076489870, guid: 562c96f1f9f04ed48be65be64cf8ec48, type: 3}
       propertyPath: m_Name
       value: LevelKey01
+      objectReference: {fileID: 0}
+    - target: {fileID: 9116789987076489870, guid: 562c96f1f9f04ed48be65be64cf8ec48, type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -242506,6 +242522,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Portal2
       objectReference: {fileID: 0}
+    - target: {fileID: 698606885859543644, guid: c7190c4faca275b4f969deda706b472b, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 1285227446089109334, guid: c7190c4faca275b4f969deda706b472b, type: 3}
       propertyPath: uiLookAtTarget
       value: 
@@ -242886,6 +242906,10 @@ PrefabInstance:
     - target: {fileID: 992019936247922306, guid: 3e91b047879890d499a1dcac03e1210a, type: 3}
       propertyPath: m_Layer
       value: 15
+      objectReference: {fileID: 0}
+    - target: {fileID: 1472834780007970650, guid: 3e91b047879890d499a1dcac03e1210a, type: 3}
+      propertyPath: m_Height
+      value: 5
       objectReference: {fileID: 0}
     - target: {fileID: 3889918760530752019, guid: 3e91b047879890d499a1dcac03e1210a, type: 3}
       propertyPath: detectionRange
@@ -281648,6 +281672,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: CameraControll
       objectReference: {fileID: 0}
+    - target: {fileID: 1309781786228216783, guid: 022e02960468a4f4c8fdb6778bddf78e, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 5362773886868464198, guid: 022e02960468a4f4c8fdb6778bddf78e, type: 3}
       propertyPath: playerRunner
       value: 
@@ -293060,6 +293088,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Player
       objectReference: {fileID: 0}
+    - target: {fileID: 8488008983044618847, guid: 09c7ba42738258a47bfaad25b5ab5ee7, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 9119221170956561110, guid: 09c7ba42738258a47bfaad25b5ab5ee7, type: 3}
       propertyPath: 'm_Materials.Array.data[1]'
       value: 
@@ -297144,6 +297176,7 @@ SceneRoots:
   - {fileID: 469093731}
   - {fileID: 832575519}
   - {fileID: 22147487}
+  - {fileID: 350533577}
   - {fileID: 1385031925}
   - {fileID: 635090316}
   - {fileID: 891642389}
@@ -297158,7 +297191,6 @@ SceneRoots:
   - {fileID: 236052636}
   - {fileID: 1134341423}
   - {fileID: 818816296}
-  - {fileID: 350533577}
   - {fileID: 1690411583}
   - {fileID: 1302922377}
   - {fileID: 107901262}
