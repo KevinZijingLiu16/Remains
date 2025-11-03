@@ -28,7 +28,7 @@ public class AirBlowerAttack : IWeaponAttackBehavior
 
         string mode = _isReversed ? "sucking" : "blowing";
 
-        SoundManager.Instance?.PlayNamedLoop(LoopSoundId, LoopSoundName, 0.6f);
+        //SoundManager.Instance?.PlayNamedLoop(LoopSoundId, LoopSoundName, 0.6f);
 
         Debug.Log($"[AirBlowerAttack] Started air {mode}");
     }
@@ -67,7 +67,7 @@ public class AirBlowerAttack : IWeaponAttackBehavior
             Object.Destroy(_activeEffect);
             _activeEffect = null;
         }
-        SoundManager.Instance?.StopNamedLoop(LoopSoundId);
+      //  SoundManager.Instance?.StopNamedLoop(LoopSoundId);
         Debug.Log("[AirBlowerAttack] Stopped air blowing");
     }
 
