@@ -131,8 +131,8 @@ public class WeaponEquipmentManager : MonoBehaviour, IWeaponEquipmentManager
 
         weaponToEquip.OnEquip(weaponEquipPoint);
         _currentWeapon = weaponToEquip;
-        SoundManager.Instance.SetVolume(equipSoundVolume);
-        SoundManager.Instance?.Play(equipSoundName);
+        //SoundManager.Instance.SetVolume(equipSoundVolume);
+        //SoundManager.Instance?.Play(equipSoundName);
         OnWeaponEquipped?.Invoke(_currentWeapon);
 
 
@@ -149,8 +149,8 @@ public class WeaponEquipmentManager : MonoBehaviour, IWeaponEquipmentManager
             _currentWeapon.OnUnequip();
             var unequippedWeapon = _currentWeapon;
             _currentWeapon = null;
-            SoundManager.Instance.SetVolume(equipSoundVolume);
-            SoundManager.Instance?.Play(unequipSoundName);
+            //SoundManager.Instance.SetVolume(equipSoundVolume);
+            //SoundManager.Instance?.Play(unequipSoundName);
             OnWeaponUnequipped?.Invoke(unequippedWeapon);
 
             if (enableDebugLogs) Debug.Log("[WeaponEquipmentManager] ✓ Weapon unequipped");

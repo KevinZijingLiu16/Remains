@@ -1,5 +1,5 @@
 using UnityEngine;
-
+using UnityEngine.SceneManagement;
 public class PlayerHealth : MonoBehaviour
 {
     [Header("Health Settings")]
@@ -147,8 +147,10 @@ public class PlayerHealth : MonoBehaviour
 
     private void HandleDeath()
     {
-       
+
         StartCoroutine(HandleDeathRespawn());
+        //SceneManager.LoadScene("DemoV1New");
+        
     }
 
     private System.Collections.IEnumerator HandleDeathRespawn()
