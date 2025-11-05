@@ -40,6 +40,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 5417725521758872532}
     m_Modifications:
+    - target: {fileID: 1532637364502242763, guid: 882aca9836952e343bc710624deb601a, type: 3}
+      propertyPath: hitEffectPrefab
+      value: 
+      objectReference: {fileID: 678993196219835155, guid: c5e0380e892de1641baca821238ff2c6, type: 3}
     - target: {fileID: 2770117312750000886, guid: 882aca9836952e343bc710624deb601a, type: 3}
       propertyPath: m_Name
       value: SprayGun01

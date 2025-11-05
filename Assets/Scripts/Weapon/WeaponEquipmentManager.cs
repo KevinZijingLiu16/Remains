@@ -8,6 +8,11 @@ public class WeaponEquipmentManager : MonoBehaviour, IWeaponEquipmentManager
     [Header("Dependencies")]
     [SerializeField] private WeaponDatabase weaponDatabase;
 
+    [Header("Audio")]
+    [SerializeField] private string equipSoundName = "WeaponEquip";
+    [SerializeField] private string unequipSoundName = "WeaponUnequip";
+    [SerializeField, Range(0f, 1f)] private float equipSoundVolume = 0.8f;
+
     [Header("Debug")]
     public bool enableDebugLogs = true;
     public bool showEquipPointGizmo = true;
@@ -126,8 +131,11 @@ public class WeaponEquipmentManager : MonoBehaviour, IWeaponEquipmentManager
 
         weaponToEquip.OnEquip(weaponEquipPoint);
         _currentWeapon = weaponToEquip;
-
+        //SoundManager.Instance.SetVolume(equipSoundVolume);
+        //SoundManager.Instance?.Play(equipSoundName);
         OnWeaponEquipped?.Invoke(_currentWeapon);
+
+
 
         if (enableDebugLogs) Debug.Log($"[WeaponEquipmentManager] ✓ Weapon equipped successfully: {_currentWeapon.WeaponName}");
     }
@@ -141,7 +149,8 @@ public class WeaponEquipmentManager : MonoBehaviour, IWeaponEquipmentManager
             _currentWeapon.OnUnequip();
             var unequippedWeapon = _currentWeapon;
             _currentWeapon = null;
-
+            //SoundManager.Instance.SetVolume(equipSoundVolume);
+            //SoundManager.Instance?.Play(unequipSoundName);
             OnWeaponUnequipped?.Invoke(unequippedWeapon);
 
             if (enableDebugLogs) Debug.Log("[WeaponEquipmentManager] ✓ Weapon unequipped");

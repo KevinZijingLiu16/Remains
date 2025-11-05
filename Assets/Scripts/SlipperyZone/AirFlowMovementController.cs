@@ -237,10 +237,8 @@ public class AirFlowMovementController : MonoBehaviour, IAirFlowMovement
     {
         if (!_airFlowMovementEnabled || _runner == null) return;
 
-  
         if (!HasAirBlowerEquipped())
         {
-        
             if (_primaryAttackPressed || _secondaryAttackPressed)
             {
                 _primaryAttackPressed = false;
@@ -251,10 +249,8 @@ public class AirFlowMovementController : MonoBehaviour, IAirFlowMovement
             return;
         }
 
-  
         if (!CanUseAirFlow())
         {
-      
             if (_primaryAttackPressed || _secondaryAttackPressed)
             {
                 _primaryAttackPressed = false;
@@ -269,30 +265,60 @@ public class AirFlowMovementController : MonoBehaviour, IAirFlowMovement
 
         if (_primaryAttackPressed)
         {
-     
-            bool needReverse = _lastMovementDirectionPositive;
-            HandleAirFlowMovement(true, needReverse, intensity);
-            ConsumePower();  
+            
+            HandleAirFlowMovement(true, true, intensity);  
+            ConsumePower();
         }
         else if (_secondaryAttackPressed)
         {
-            bool needReverse = !_lastMovementDirectionPositive;
-            HandleAirFlowMovement(true, needReverse, intensity);
-            ConsumePower(); 
+            
+            HandleAirFlowMovement(true, false, intensity);  
+            ConsumePower();
         }
     }
 
-    public void HandleAirFlowMovement(bool isBlowing, bool isReversed, float intensity)
+    public void HandleAirFlowMovement(bool isBlowing, bool shouldMoveBackward, float intensity)
     {
         if (!_airFlowMovementEnabled || _runner == null) return;
 
-        float direction = isReversed ? -1f : 1f;
+        var splineTracker = _runner.GetComponent<SplineTracker>();
+        if (splineTracker == null || !splineTracker.IsValid()) return;
+
+        float currentT = _runner.GetCurrentT();
+
+        Vector3 splineTangent = splineTracker.GetWorldTangentAtT(currentT);
+        splineTangent.y = 0f;
+        if (splineTangent.sqrMagnitude > 1e-6f)
+            splineTangent.Normalize();
 
     
-        float moveDistance = direction * airFlowForce * intensity * Time.fixedDeltaTime;
+        Vector2 mousePos = Input.mousePosition;
+        bool mouseOnLeft = mousePos.x < Screen.width * 0.5f;
 
-      
+     
+        float visualDirectionSign = mouseOnLeft ? -1f : 1f;
+
+    
+        float splineDirectionSign = Vector3.Dot(transform.forward, splineTangent) >= 0f ? 1f : -1f;
+
+   
+        float moveDirection = shouldMoveBackward ? -1f : 1f;
+        float finalDirection = moveDirection * visualDirectionSign * splineDirectionSign;
+
+    
+        float moveDistance = finalDirection * airFlowForce * intensity * Time.fixedDeltaTime;
+
+   
         ApplySplineMovement(moveDistance);
+
+        if (enableDebugLogs && Time.frameCount % 30 == 0)
+        {
+            Debug.Log($"[AirFlowMovement] Mouse: {(mouseOnLeft ? "Left" : "Right")}, " +
+                      $"shouldMoveBackward: {shouldMoveBackward}, " +
+                      $"visualSign: {visualDirectionSign}, " +
+                      $"splineSign: {splineDirectionSign}, " +
+                      $"finalDirection: {finalDirection}");
+        }
     }
 
     private void ApplySplineMovement(float distance)

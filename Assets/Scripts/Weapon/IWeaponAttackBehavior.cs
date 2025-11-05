@@ -7,4 +7,6 @@ public interface IWeaponAttackBehavior
     void StopAttack(Transform weaponTransform, PlayerPower playerPower);
     bool CanAttack(PlayerPower playerPower);
     int GetPowerCostPerSecond();
+    string GetAttackLoopSoundName(); 
+    bool HasLoopSound(); 
 }

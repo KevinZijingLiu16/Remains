@@ -1,9 +1,10 @@
-﻿using UnityEngine;
-using UnityEngine.UI;
+﻿using System.Collections;
 using System.Collections.Generic;
 using TMPro;
+using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
-using System.Collections;
+using UnityEngine.UI;
 
 public class WeaponSelectionUI : MonoBehaviour, IWeaponSelectionUI
 {
@@ -21,9 +22,13 @@ public class WeaponSelectionUI : MonoBehaviour, IWeaponSelectionUI
     public Image currentWeaponIcon;
     public TextMeshProUGUI currentWeaponText;
 
-    [Header("Input Settings")]
-    public bool allowMoveInput = false;  
-    public bool allowMouseInput = true;  
+    [Header("Input System - Direct Action References")]
+    public InputActionReference navigateActionRef;
+    public InputActionReference confirmActionRef;
+
+    [Header("Navigation Settings")]
+    public float gamepadNavigationDelay = 0.3f; 
+    public float mouseMovementThreshold = 5f;     
 
     [Header("Navigation Colors")]
     public Color normalButtonColor = Color.white;
@@ -45,25 +50,256 @@ public class WeaponSelectionUI : MonoBehaviour, IWeaponSelectionUI
     private CanvasGroup _panelCanvasGroup;
     private IWeaponEquipmentManager _equipmentManager;
 
-    private int _currentEquippedIndex = -1;  
-    private int _hoveredIndex = -1;          
+    private int _currentEquippedIndex = -1;
+    private int _highlightedIndex = 0; 
     private float _originalTimeScale;
     private bool _hasNoWeaponOption = false;
+
+    private bool _isUsingMouse = true;
+    private Vector2 _lastMousePosition;
+    private float _lastGamepadNavigationTime;
+    private Camera _uiCamera;
 
     void Start()
     {
         InitializeUI();
+        InitializeInputSystem();
         StartCoroutine(DelayedInitializeEquipmentManager());
+
+        Canvas canvas = GetComponentInParent<Canvas>();
+        if (canvas != null && canvas.renderMode != RenderMode.ScreenSpaceOverlay)
+        {
+            _uiCamera = canvas.worldCamera;
+        }
+    }
+
+    private void InitializeInputSystem()
+    {
+        if (navigateActionRef == null || confirmActionRef == null)
+        {
+            Debug.LogError("[WeaponSelectionUI] Input Action References not assigned!");
+            return;
+        }
+
+        if (navigateActionRef.action != null)
+        {
+            navigateActionRef.action.performed += OnNavigate;
+            navigateActionRef.action.started += OnNavigate;
+            navigateActionRef.action.canceled += OnNavigateCanceled; 
+        }
+
+        if (confirmActionRef.action != null)
+        {
+            confirmActionRef.action.performed += OnConfirm;
+        }
+    }
+
+    private void OnNavigateCanceled(InputAction.CallbackContext context)
+    {
+        if (enableDebugLogs)
+            Debug.Log($"[WeaponSelectionUI] Navigate canceled from: {context.control.path}");
+    }
+    void OnEnable()
+    {
+        navigateActionRef?.action?.Enable();
+        confirmActionRef?.action?.Enable();
+    }
+
+    void OnDisable()
+    {
+        navigateActionRef?.action?.Disable();
+        confirmActionRef?.action?.Disable();
     }
 
     void OnDestroy()
     {
+        if (navigateActionRef?.action != null)
+        {
+            navigateActionRef.action.performed -= OnNavigate;
+            navigateActionRef.action.started -= OnNavigate;
+        }
+
+        if (confirmActionRef?.action != null)
+        {
+            confirmActionRef.action.performed -= OnConfirm;
+        }
+
         if (_equipmentManager != null)
         {
             _equipmentManager.OnWeaponEquipped -= UpdateCurrentWeaponDisplay;
             _equipmentManager.OnWeaponUnequipped -= UpdateCurrentWeaponDisplay;
         }
     }
+
+    private void OnNavigate(InputAction.CallbackContext context)
+    {
+        if (!IsVisible) return;
+
+        string controlPath = context.control.path;
+
+        if (enableDebugLogs)
+            Debug.Log($"[WeaponSelectionUI] Navigate input from: {controlPath}");
+
+        if (controlPath.Contains("Mouse") || controlPath.Contains("Position"))
+        {
+            Vector2 mousePos = context.ReadValue<Vector2>();
+            HandleMouseNavigation(mousePos);
+        }
+        else if (controlPath.Contains("Stick") || controlPath.Contains("Gamepad") || controlPath.Contains("DPad"))
+        {
+            Vector2 stickInput = context.ReadValue<Vector2>();
+
+            if (context.phase == InputActionPhase.Performed)
+            {
+                HandleGamepadNavigation(stickInput);
+            }
+        }
+    }
+
+    private void HandleMouseNavigation(Vector2 mousePosition)
+    {
+        if (Vector2.Distance(mousePosition, _lastMousePosition) < mouseMovementThreshold)
+            return;
+
+        _isUsingMouse = true;
+        _lastMousePosition = mousePosition;
+
+        int hoveredIndex = GetButtonIndexAtPosition(mousePosition);
+
+        if (hoveredIndex >= 0 && hoveredIndex != _highlightedIndex)
+        {
+            _highlightedIndex = hoveredIndex;
+            UpdateButtonVisuals();
+
+            if (enableDebugLogs)
+                Debug.Log($"[WeaponSelectionUI] Mouse navigate to index: {_highlightedIndex}");
+        }
+    }
+
+    private void HandleGamepadNavigation(Vector2 stickInput)
+    {
+        if (Time.unscaledTime - _lastGamepadNavigationTime < gamepadNavigationDelay)
+            return;
+
+        float deadZone = 0.7f; 
+
+        if (Mathf.Abs(stickInput.y) < deadZone && Mathf.Abs(stickInput.x) < deadZone)
+            return;
+
+        _isUsingMouse = false;
+        _lastGamepadNavigationTime = Time.unscaledTime;
+
+        if (Mathf.Abs(stickInput.y) > Mathf.Abs(stickInput.x))
+        {
+            if (stickInput.y > deadZone)
+            {
+                _highlightedIndex--;
+                if (_highlightedIndex < 0)
+                    _highlightedIndex = _spawnedButtons.Count - 1;
+            }
+            else if (stickInput.y < -deadZone) 
+            {
+                _highlightedIndex++;
+                if (_highlightedIndex >= _spawnedButtons.Count)
+                    _highlightedIndex = 0;
+            }
+        }
+
+        UpdateButtonVisuals();
+
+        if (enableDebugLogs)
+            Debug.Log($"[WeaponSelectionUI] Gamepad navigate to index: {_highlightedIndex}, stick value: {stickInput}");
+    }
+
+    private int GetButtonIndexAtPosition(Vector2 screenPosition)
+    {
+        PointerEventData eventData = new PointerEventData(EventSystem.current);
+        eventData.position = screenPosition;
+
+        List<RaycastResult> results = new List<RaycastResult>();
+        EventSystem.current.RaycastAll(eventData, results);
+
+        foreach (RaycastResult result in results)
+        {
+            GameObject hitObject = result.gameObject;
+
+            for (int i = 0; i < _spawnedButtons.Count; i++)
+            {
+                if (_spawnedButtons[i] == hitObject ||
+                    hitObject.transform.IsChildOf(_spawnedButtons[i].transform))
+                {
+                    return i;
+                }
+            }
+        }
+
+        return -1;
+    }
+
+    private void OnConfirm(InputAction.CallbackContext context)
+    {
+        if (!IsVisible) return;
+
+        SelectWeaponAtIndex(_highlightedIndex);
+
+        if (enableDebugLogs)
+        {
+            string device = context.control.device is Mouse ? "Mouse" : "Gamepad";
+            Debug.Log($"[WeaponSelectionUI] Confirm from {device} at index: {_highlightedIndex}");
+        }
+    }
+
+    private void SelectWeaponAtIndex(int index)
+    {
+        if (index < 0 || index >= _spawnedButtons.Count) return;
+
+        if (index == 0 && _hasNoWeaponOption)
+        {
+            if (enableDebugLogs)
+                Debug.Log("[WeaponSelectionUI] No Weapon selected!");
+            OnWeaponUnequipRequested?.Invoke();
+        }
+        else
+        {
+            int weaponIndex = _hasNoWeaponOption ? index - 1 : index;
+            if (weaponIndex >= 0 && weaponIndex < _currentWeapons.Count)
+            {
+                var weapon = _currentWeapons[weaponIndex];
+                if (enableDebugLogs)
+                    Debug.Log($"[WeaponSelectionUI] Weapon selected: {weapon.WeaponName}");
+                OnWeaponSelected?.Invoke(weapon.WeaponId);
+            }
+        }
+
+        HideWeaponPanel();
+    }
+
+    private void UpdateButtonVisuals()
+    {
+        for (int i = 0; i < _spawnedButtons.Count; i++)
+        {
+            bool shouldHighlight = (i == _highlightedIndex);
+            SetButtonVisual(_spawnedButtons[i], shouldHighlight);
+        }
+    }
+
+    private void SetButtonVisual(GameObject buttonObj, bool highlighted)
+    {
+        if (buttonObj == null) return;
+
+        var image = buttonObj.GetComponent<Image>();
+        if (image != null)
+        {
+            image.color = highlighted ? selectedButtonColor : normalButtonColor;
+        }
+
+        var rt = buttonObj.GetComponent<RectTransform>();
+        if (rt != null)
+        {
+            rt.localScale = highlighted ? Vector3.one * 1.15f : Vector3.one;
+        }
+    }
+
 
     private IEnumerator DelayedInitializeEquipmentManager()
     {
@@ -108,14 +344,15 @@ public class WeaponSelectionUI : MonoBehaviour, IWeaponSelectionUI
 
         _hasNoWeaponOption = true;
 
-       
         _currentEquippedIndex = GetCurrentEquippedIndex();
-        _hoveredIndex = -1;  
 
-      
+        _highlightedIndex = _currentEquippedIndex >= 0 ? _currentEquippedIndex : 0;
+
         CreateNoWeaponButton();
         for (int i = 0; i < availableWeapons.Length; i++)
+        {
             CreateWeaponButton(availableWeapons[i], i + 1);
+        }
 
         UpdateCurrentWeaponDisplay(_equipmentManager?.CurrentWeapon);
 
@@ -128,8 +365,7 @@ public class WeaponSelectionUI : MonoBehaviour, IWeaponSelectionUI
             StartCoroutine(FadeIn());
         }
 
-     
-        UpdateAllButtonVisuals();
+        UpdateButtonVisuals();
     }
 
     private int GetCurrentEquippedIndex()
@@ -139,16 +375,15 @@ public class WeaponSelectionUI : MonoBehaviour, IWeaponSelectionUI
             return 0; // No Weapon 
         }
 
-     
         for (int i = 0; i < _currentWeapons.Count; i++)
         {
             if (_currentWeapons[i].WeaponId == _equipmentManager.CurrentWeapon.WeaponId)
             {
-                return i + 1; 
+                return i + 1;
             }
         }
 
-        return 0; 
+        return 0;
     }
 
     private void CreateNoWeaponButton()
@@ -165,18 +400,6 @@ public class WeaponSelectionUI : MonoBehaviour, IWeaponSelectionUI
         if (button != null)
         {
             button.onClick.RemoveAllListeners();
-            button.onClick.AddListener(() =>
-            {
-                if (enableDebugLogs) Debug.Log("[WeaponSelectionUI] No Weapon button clicked!");
-                OnWeaponUnequipRequested?.Invoke();
-                HideWeaponPanel();
-            });
-        }
-
-     
-        if (allowMouseInput)
-        {
-            AddHoverEvents(buttonObj, 0);
         }
     }
 
@@ -190,110 +413,18 @@ public class WeaponSelectionUI : MonoBehaviour, IWeaponSelectionUI
 
         ForceSetButtonIcon(buttonObj, weapon.WeaponIcon, weapon.WeaponName);
 
+  
         var button = buttonObj.GetComponent<Button>();
         if (button != null)
         {
             button.onClick.RemoveAllListeners();
-            string weaponId = weapon.WeaponId;
-            string weaponName = weapon.WeaponName;
-
-            button.onClick.AddListener(() =>
-            {
-                if (enableDebugLogs) Debug.Log($"[WeaponSelectionUI] Weapon button clicked: {weaponName} (ID: {weaponId})");
-                OnWeaponSelected?.Invoke(weaponId);
-                HideWeaponPanel();
-            });
         }
-
-     
-        if (allowMouseInput)
-        {
-            AddHoverEvents(buttonObj, buttonIndex);
-        }
-    }
-
-    private void AddHoverEvents(GameObject buttonObj, int buttonIndex)
-    {
-        var eventTrigger = buttonObj.GetComponent<UnityEngine.EventSystems.EventTrigger>();
-        if (eventTrigger == null)
-            eventTrigger = buttonObj.AddComponent<UnityEngine.EventSystems.EventTrigger>();
-
-      
-        var pointerEnter = new UnityEngine.EventSystems.EventTrigger.Entry
-        {
-            eventID = UnityEngine.EventSystems.EventTriggerType.PointerEnter
-        };
-        pointerEnter.callback.AddListener((data) => OnButtonHover(buttonIndex));
-        eventTrigger.triggers.Add(pointerEnter);
-
-    
-        var pointerExit = new UnityEngine.EventSystems.EventTrigger.Entry
-        {
-            eventID = UnityEngine.EventSystems.EventTriggerType.PointerExit
-        };
-        pointerExit.callback.AddListener((data) => OnButtonExit(buttonIndex));
-        eventTrigger.triggers.Add(pointerExit);
-    }
-
-    private void OnButtonHover(int buttonIndex)
-    {
-        _hoveredIndex = buttonIndex;
-        UpdateAllButtonVisuals();
-
-        if (enableDebugLogs)
-            Debug.Log($"[WeaponSelectionUI] Hover on button index: {buttonIndex}");
-    }
-
-    private void OnButtonExit(int buttonIndex)
-    {
-        if (_hoveredIndex == buttonIndex)
-        {
-            _hoveredIndex = -1;
-            UpdateAllButtonVisuals();
-        }
-    }
-
-    private void UpdateAllButtonVisuals()
-    {
-        for (int i = 0; i < _spawnedButtons.Count; i++)
-        {
-            bool shouldHighlight = false;
-
-            if (_hoveredIndex >= 0)
-            {
-                
-                shouldHighlight = (i == _hoveredIndex);
-            }
-            else
-            {
-             
-                shouldHighlight = (i == _currentEquippedIndex);
-            }
-
-            SetButtonVisual(_spawnedButtons[i], shouldHighlight);
-        }
-    }
-
-    private void SetButtonVisual(GameObject buttonObj, bool highlighted)
-    {
-        if (buttonObj == null) return;
-
-        var button = buttonObj.GetComponent<Button>();
-        if (!button) return;
-
-        var colors = button.colors;
-        colors.normalColor = (highlighted) ? selectedButtonColor : normalButtonColor;
-        button.colors = colors;
-
-        var rt = buttonObj.GetComponent<RectTransform>();
-        if (rt) rt.localScale = (highlighted) ? Vector3.one * 1.1f : Vector3.one;
     }
 
     private Image GetButtonIconImage(GameObject buttonObj)
     {
         if (buttonObj == null) return null;
 
-      
         string[] possibleNames = { "Icon", "WeaponIcon", "ItemIcon", "Image", "icon", "weapon_icon" };
         foreach (string name in possibleNames)
         {
@@ -305,7 +436,6 @@ public class WeaponSelectionUI : MonoBehaviour, IWeaponSelectionUI
             }
         }
 
-   
         Image[] images = buttonObj.GetComponentsInChildren<Image>();
         foreach (var img in images)
         {
@@ -349,7 +479,7 @@ public class WeaponSelectionUI : MonoBehaviour, IWeaponSelectionUI
             if (iconSprite != null)
             {
                 targetIcon.sprite = iconSprite;
-                targetIcon.color = Color.white;  
+                targetIcon.color = Color.white;
                 targetIcon.preserveAspect = true;
                 Canvas.ForceUpdateCanvases();
             }
@@ -375,7 +505,7 @@ public class WeaponSelectionUI : MonoBehaviour, IWeaponSelectionUI
                 weaponPanel.SetActive(false);
         }
 
-        _hoveredIndex = -1;
+        _highlightedIndex = -1;
     }
 
     private void UpdateCurrentWeaponDisplay(IWeapon weapon)
@@ -410,9 +540,10 @@ public class WeaponSelectionUI : MonoBehaviour, IWeaponSelectionUI
     private void ClearWeaponButtons()
     {
         foreach (var button in _spawnedButtons)
+        {
             if (button != null)
                 Destroy(button);
-
+        }
         _spawnedButtons.Clear();
         _hasNoWeaponOption = false;
     }

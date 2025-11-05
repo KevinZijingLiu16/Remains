@@ -109,7 +109,7 @@ public class LevelUIController : MonoBehaviour
             if (lockedLevelNameText != null)
                 lockedLevelNameText.text = _levelName;
             if (lockedMessageText != null)
-                lockedMessageText.text = "Need Key To Enter";
+                lockedMessageText.text = "Missing key for this level";
         }
     }
 

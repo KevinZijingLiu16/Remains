@@ -3,6 +3,7 @@ using UnityEngine;
 public class AnimalEatingState : AnimalNPCState
 {
     private readonly int eatingHash = Animator.StringToHash("Eating");
+    private readonly int speedHash = Animator.StringToHash("Speed");
     private const float crossFadeDuration = 0.2f;
 
     private float eatingTimer = 0f;
@@ -14,24 +15,32 @@ public class AnimalEatingState : AnimalNPCState
 
     public override void Enter()
     {
-        Debug.Log($"[{animalStateMachine.AnimalType}] Entering Eating State");
 
         if (animalStateMachine.Animator != null)
         {
             animalStateMachine.Animator.CrossFadeInFixedTime(eatingHash, crossFadeDuration);
+            animalStateMachine.Animator.SetFloat(speedHash, 0f);
         }
 
+        StopMovement();
+
         eatingTimer = 0f;
-        eatingDuration = animalStateMachine.EatingTime;
+        eatingDuration = animalStateMachine.EatingTime + Random.Range(-1f, 1f);
+        eatingDuration = Mathf.Max(2f, eatingDuration); // ÖÁÉÙ 2 Ãë
+
     }
 
     public override void Tick(float deltaTime)
     {
         eatingTimer += deltaTime;
 
+        if (animalStateMachine.Animator != null)
+        {
+            animalStateMachine.Animator.SetFloat(speedHash, 0f);
+        }
+
         if (eatingTimer >= eatingDuration)
         {
-          
             animalStateMachine.SwitchState(new AnimalPatrolState(animalStateMachine));
         }
     }
@@ -42,6 +51,5 @@ public class AnimalEatingState : AnimalNPCState
 
     public override void Exit()
     {
-        Debug.Log($"[{animalStateMachine.AnimalType}] Exiting Eating State");
     }
 }

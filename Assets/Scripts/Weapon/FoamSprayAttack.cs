@@ -56,7 +56,7 @@ public class FoamSprayAttack : IWeaponAttackBehavior
 
         _isAttacking = false;
 
-        // 清理特效
+     
         if (_activeEffect != null)
         {
             Object.Destroy(_activeEffect);
@@ -90,5 +90,15 @@ public class FoamSprayAttack : IWeaponAttackBehavior
             var damageable = hit.collider.GetComponent<IDamageable>();
             damageable?.TakeDamage(1); 
         }
+    }
+
+    public string GetAttackLoopSoundName()
+    {
+        throw new System.NotImplementedException();
+    }
+
+    public bool HasLoopSound()
+    {
+        throw new System.NotImplementedException();
     }
 }

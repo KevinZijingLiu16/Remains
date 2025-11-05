@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 [RequireComponent(typeof(Collider))]
 public class StateTransitionTrigger : MonoBehaviour
