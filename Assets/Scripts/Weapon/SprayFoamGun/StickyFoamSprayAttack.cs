@@ -49,7 +49,7 @@ public class StickyFoamSprayAttack : IWeaponAttackBehavior
         _nextFoamSpawn = 0f;
 
         CreateFoamEffect(weaponTransform);
-       // SoundManager.Instance?.PlayNamedLoop(LOOP_SOUND_ID, LOOP_SOUND_NAME, 0.7f);
+       SoundManager.Instance?.PlayNamedLoop(LOOP_SOUND_ID, LOOP_SOUND_NAME, 0.7f);
         Debug.Log("[StickyFoamSprayAttack] Started sticky foam spray");
     }
 
@@ -95,7 +95,7 @@ public class StickyFoamSprayAttack : IWeaponAttackBehavior
             Object.Destroy(_activeEffect);
             _activeEffect = null;
         }
-      //  SoundManager.Instance?.StopNamedLoop(LOOP_SOUND_ID);
+      SoundManager.Instance?.StopNamedLoop(LOOP_SOUND_ID);
         Debug.Log("[StickyFoamSprayAttack] Stopped sticky foam spray");
     }
 

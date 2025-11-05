@@ -1,0 +1,49 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2846b0dc4a10d594b9bfa5edb98c27e0, type: 3}
+  m_Name: New Sound Library
+  m_EditorClassIdentifier: 
+  sounds:
+  - name: ThemeTrack
+    clip: {fileID: 8300000, guid: ea8fc1f79484b074da306079759f2253, type: 3}
+  - name: motor
+    clip: {fileID: 8300000, guid: cbcc56d2970e0ea48803bfad907bc55e, type: 3}
+  - name: LowBattery
+    clip: {fileID: 8300000, guid: 23776d9980687f24e9cd09800035b61b, type: 3}
+  - name: Checkpoint
+    clip: {fileID: 8300000, guid: ed61cfc25157aba4daa96dc71b6b5818, type: 3}
+  - name: OpenningUI
+    clip: {fileID: 8300000, guid: 6edf0cc5c533c074da97ba2f0db1525e, type: 3}
+  - name: foam_spray_primary
+    clip: {fileID: 8300000, guid: 1e1547d9b146ef94ca073b9d181361a9, type: 3}
+  - name: foam_spray_secondary
+    clip: {fileID: 8300000, guid: 1d7fe9d774fefc7419d3524336931de2, type: 3}
+  - name: WeaponEquip
+    clip: {fileID: 8300000, guid: ed61cfc25157aba4daa96dc71b6b5818, type: 3}
+  - name: WeaponUnequip
+    clip: {fileID: 8300000, guid: ed61cfc25157aba4daa96dc71b6b5818, type: 3}
+  - name: air_blower_suck
+    clip: {fileID: 8300000, guid: ed61cfc25157aba4daa96dc71b6b5818, type: 3}
+  - name: air_blower_suck
+    clip: {fileID: 8300000, guid: ed61cfc25157aba4daa96dc71b6b5818, type: 3}
+  - name: FoamSprayEnhancedLoop
+    clip: {fileID: 8300000, guid: 1e1547d9b146ef94ca073b9d181361a9, type: 3}
+  - name: FoamSprayLoop
+    clip: {fileID: 8300000, guid: 1d7fe9d774fefc7419d3524336931de2, type: 3}
+  - name: UI_Hover
+    clip: {fileID: 8300000, guid: 2d656e07a5efcb541b9daef7f1247e99, type: 3}
+  - name: UI_Click
+    clip: {fileID: 8300000, guid: b113a7c55fc8ead43a47ff74d6864855, type: 3}
+  - name: BGM_Opening
+    clip: {fileID: 8300000, guid: 6edf0cc5c533c074da97ba2f0db1525e, type: 3}
+  - name: BGM_Game
+    clip: {fileID: 8300000, guid: ea8fc1f79484b074da306079759f2253, type: 3}

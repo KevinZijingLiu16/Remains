@@ -18,7 +18,7 @@ public class EnhancedInteractionPromptManager : MonoBehaviour
     public GameObject textContainer;
     public GameObject imageContainer;
     public GameObject videoContainer;
-    public GameObject promptPanel; // 整个提示面板
+    public GameObject promptPanel;
 
     [Header("Settings")]
     public float fadeSpeed = 5f;
@@ -29,7 +29,7 @@ public class EnhancedInteractionPromptManager : MonoBehaviour
     public Vector2 defaultImageSize = new Vector2(200, 200);
     public Vector2 defaultVideoSize = new Vector2(400, 300);
 
-    // 提示类型枚举
+  
     public enum PromptType
     {
         Text,
@@ -67,7 +67,7 @@ public class EnhancedInteractionPromptManager : MonoBehaviour
 
     private void InitializeUI()
     {
-        // 初始化主面板的CanvasGroup
+      
         if (promptPanel != null)
         {
             panelCanvasGroup = promptPanel.GetComponent<CanvasGroup>();
@@ -86,10 +86,10 @@ public class EnhancedInteractionPromptManager : MonoBehaviour
             }
         }
 
-        // 初始化视频播放器
+   
         if (videoPlayer != null && videoDisplayUI != null)
         {
-            // 创建RenderTexture用于视频显示
+       
             videoRenderTexture = new RenderTexture(
                 (int)defaultVideoSize.x,
                 (int)defaultVideoSize.y,
@@ -98,11 +98,11 @@ public class EnhancedInteractionPromptManager : MonoBehaviour
             videoPlayer.targetTexture = videoRenderTexture;
             videoDisplayUI.texture = videoRenderTexture;
 
-            // 设置视频播放完成回调
+         
             videoPlayer.loopPointReached += OnVideoFinished;
         }
 
-        // 初始隐藏所有容器
+       
         HideAllContainers();
     }
 
@@ -120,9 +120,9 @@ public class EnhancedInteractionPromptManager : MonoBehaviour
         }
     }
 
-    #region 显示不同类型的提示
+    #region show different type of instruction
 
-    // 显示纯文本提示
+
     public void ShowTextPrompt(string text, int priority = 0)
     {
         if (!CanShowPrompt(priority)) return;
@@ -141,7 +141,7 @@ public class EnhancedInteractionPromptManager : MonoBehaviour
         ShowPanel();
     }
 
-    // 显示纯图片提示
+
     public void ShowImagePrompt(Sprite image, int priority = 0)
     {
         if (!CanShowPrompt(priority) || image == null) return;
@@ -162,7 +162,7 @@ public class EnhancedInteractionPromptManager : MonoBehaviour
         ShowPanel();
     }
 
-    // 显示纯视频提示
+ 
     public void ShowVideoPrompt(VideoClip video, int priority = 0, bool loop = false)
     {
         if (!CanShowPrompt(priority) || video == null) return;
@@ -183,7 +183,7 @@ public class EnhancedInteractionPromptManager : MonoBehaviour
         ShowPanel();
     }
 
-    // 显示文本+图片提示
+   
     public void ShowTextWithImagePrompt(string text, Sprite image, int priority = 0)
     {
         if (!CanShowPrompt(priority)) return;
@@ -209,7 +209,7 @@ public class EnhancedInteractionPromptManager : MonoBehaviour
         ShowPanel();
     }
 
-    // 显示文本+视频提示
+  
     public void ShowTextWithVideoPrompt(string text, VideoClip video, int priority = 0, bool loop = false)
     {
         if (!CanShowPrompt(priority)) return;
@@ -236,7 +236,7 @@ public class EnhancedInteractionPromptManager : MonoBehaviour
         ShowPanel();
     }
 
-    // 显示带图标的文本提示
+  
     public void ShowPromptWithIcon(string text, Sprite icon, int priority = 0)
     {
         ShowTextWithImagePrompt(text, icon, priority);
@@ -351,7 +351,7 @@ public class EnhancedInteractionPromptManager : MonoBehaviour
         RectTransform rt = promptImageUI.GetComponent<RectTransform>();
         if (rt != null)
         {
-            // 保持宽高比适应默认大小
+          
             float imageRatio = promptImageUI.sprite.rect.width / promptImageUI.sprite.rect.height;
             float targetRatio = defaultImageSize.x / defaultImageSize.y;
 
@@ -376,7 +376,7 @@ public class EnhancedInteractionPromptManager : MonoBehaviour
 
     private void OnVideoFinished(VideoPlayer vp)
     {
-        // 视频播放完成的回调
+    
         if (!vp.isLooping)
         {
             Debug.Log("Video finished playing");

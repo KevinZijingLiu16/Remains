@@ -522,5 +522,5 @@ MonoBehaviour:
   hitLayers:
     serializedVersion: 2
     m_Bits: 4294967295
-  hitEffectPrefab: {fileID: 0}
-  parentEffectToTarget: 1
+  hitEffectPrefab: {fileID: 678993196219835155, guid: c5e0380e892de1641baca821238ff2c6, type: 3}
+  parentEffectToTarget: 0
