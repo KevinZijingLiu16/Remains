@@ -10,6 +10,9 @@ public class StickyFoamSprayAttack : IWeaponAttackBehavior
     private const string LOOP_SOUND_ID = "foam_spray_primary";
     private const string LOOP_SOUND_NAME = "FoamSprayLoop";
 
+
+
+
     [Header("Foam Spawn Settings")]
     public GameObject stickyFoamPrefab; 
     public float foamSpawnInterval = 0.3f; 
@@ -227,13 +230,6 @@ public class StickyFoamSprayAttack : IWeaponAttackBehavior
         aimAssist = assist;
     }
 
-    public string GetAttackLoopSoundName()
-    {
-        throw new System.NotImplementedException();
-    }
-
-    public bool HasLoopSound()
-    {
-        throw new System.NotImplementedException();
-    }
+    public string GetAttackLoopSoundName() => "FoamSprayLoop";
+    public bool HasLoopSound() => true;
 }

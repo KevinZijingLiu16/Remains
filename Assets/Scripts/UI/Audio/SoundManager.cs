@@ -224,4 +224,89 @@ public class SoundManager : MonoBehaviour, ISoundPlayer
 
         Debug.Log("[SoundManager] Destroyed");
     }
+    public void PlayScaled(string soundName, float volumeScale = 1f)
+    {
+        var clip = soundLibrary.GetClip(soundName);
+        if (clip != null)
+        {
+          
+            sfxSource.PlayOneShot(clip, Mathf.Clamp01(volumeScale) * _sfxVolume);
+            Debug.Log($"[SoundManager] PlayScaled SFX: {soundName}, scale: {volumeScale}, final: {Mathf.Clamp01(volumeScale) * _sfxVolume}");
+        }
+        else
+        {
+            Debug.LogWarning($"[SoundManager] Sound not found: {soundName}");
+        }
+    }
+
+    // 3D 一次性
+    public void PlayOneShot3D(string soundName, Transform attachTo, float volume = 1f,
+                              float minDistance = 1f, float maxDistance = 15f)
+    {
+        var clip = soundLibrary.GetClip(soundName);
+        if (clip == null || attachTo == null)
+        {
+            Debug.LogWarning($"[SoundManager] 3D oneshot not found or no attach: {soundName}");
+            return;
+        }
+        var go = new GameObject($"OneShot3D_{soundName}");
+        go.transform.SetParent(attachTo, false);
+        var src = go.AddComponent<AudioSource>();
+        src.clip = clip;
+        src.loop = false;
+        src.playOnAwake = false;
+        src.spatialBlend = 1f;
+        src.rolloffMode = AudioRolloffMode.Linear;
+        src.minDistance = minDistance;
+        src.maxDistance = maxDistance;
+        src.dopplerLevel = 0f;
+        src.volume = Mathf.Clamp01(volume) * _sfxVolume;
+        src.Play();
+        Destroy(go, clip.length + 0.1f);
+    }
+
+    // 3D 循环（新增带 follow 的重载）
+    public void PlayNamedLoop(string identifier, string soundName, float volume = 1f,
+                              Transform follow = null, float spatialBlend = 0f,
+                              float minDistance = 1f, float maxDistance = 15f)
+    {
+        var clip = soundLibrary.GetClip(soundName);
+        if (clip == null)
+        {
+            Debug.LogWarning($"[SoundManager] Sound not found: {soundName}");
+            return;
+        }
+
+        if (!_namedLoopSources.TryGetValue(identifier, out var source) || source == null)
+        {
+            var go = new GameObject($"AudioSource_{identifier}");
+            go.transform.SetParent(follow != null ? follow : transform, false);
+            source = go.AddComponent<AudioSource>();
+            source.loop = true;
+            source.playOnAwake = false;
+            _namedLoopSources[identifier] = source;
+        }
+        else if (follow != null && source.transform.parent != follow)
+        {
+            source.transform.SetParent(follow, false);
+        }
+
+        if (source.clip != clip) source.clip = clip;
+
+        source.spatialBlend = Mathf.Clamp01(spatialBlend);
+        source.rolloffMode = AudioRolloffMode.Linear;
+        source.minDistance = minDistance;
+        source.maxDistance = maxDistance;
+        source.dopplerLevel = 0f;
+
+        _bgmTargetVolumes[identifier] = Mathf.Clamp01(volume);
+        bool isBGM = identifier.StartsWith("BGM_");
+        float mult = isBGM ? _bgmVolume : _sfxVolume;
+        source.volume = _bgmTargetVolumes[identifier] * mult;
+
+        if (!source.isPlaying) source.Play();
+    }
+
+
+
 }

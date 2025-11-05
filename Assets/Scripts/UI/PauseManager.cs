@@ -22,7 +22,7 @@ public class PauseManager : MonoBehaviour
 
     [Header("Input Actions")]
     [SerializeField] private InputActionReference pauseActionRef;
-    [SerializeField] private InputActionReference cancelActionRef;
+   // [SerializeField] private InputActionReference cancelActionRef;
 
     [Header("Scene Settings")]
     [SerializeField] private string openingSceneName = "OpeningUI";
@@ -31,6 +31,7 @@ public class PauseManager : MonoBehaviour
     [SerializeField] private bool autoSelectFirstButton = false;
 
     private bool isPaused = false;
+    public bool IsPaused => isPaused;
 
     private void Awake()
     {
@@ -53,32 +54,18 @@ public class PauseManager : MonoBehaviour
 
     private void OnEnable()
     {
- 
         if (pauseActionRef != null && pauseActionRef.action != null)
         {
             pauseActionRef.action.Enable();
             pauseActionRef.action.performed += OnPausePerformed;
         }
-
-     
-        if (cancelActionRef != null && cancelActionRef.action != null)
-        {
-            cancelActionRef.action.Enable();
-            cancelActionRef.action.performed += OnCancelPerformed;
-        }
     }
 
     private void OnDisable()
     {
-     
         if (pauseActionRef != null && pauseActionRef.action != null)
         {
             pauseActionRef.action.performed -= OnPausePerformed;
-        }
-
-        if (cancelActionRef != null && cancelActionRef.action != null)
-        {
-            cancelActionRef.action.performed -= OnCancelPerformed;
         }
     }
 
@@ -86,29 +73,27 @@ public class PauseManager : MonoBehaviour
     {
         if (settingsPanel != null && settingsPanel.activeSelf)
         {
-          
-            OnSettingsBackClicked();
+            ShowPauseMenu();
+            return;
         }
-        else
-        {
-           
-            TogglePause();
-        }
+
+        if (isPaused) ResumeGame();
+        else PauseGame();
     }
 
-    private void OnCancelPerformed(InputAction.CallbackContext context)
-    {
-        if (settingsPanel != null && settingsPanel.activeSelf)
-        {
+    //private void OnCancelPerformed(InputAction.CallbackContext context)
+    //{
+    //    if (settingsPanel != null && settingsPanel.activeSelf)
+    //    {
          
-            OnSettingsBackClicked();
-        }
-        else if (isPaused)
-        {
+    //        OnSettingsBackClicked();
+    //    }
+    //    else if (isPaused)
+    //    {
          
-            ResumeGame();
-        }
-    }
+    //        ResumeGame();
+    //    }
+    //}
 
  
     public void TogglePause()

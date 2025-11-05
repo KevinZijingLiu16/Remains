@@ -18,6 +18,16 @@ public class MovingPlatform : MonoBehaviour
     [SerializeField] private Vector3 pointAOffset = new Vector3(0, 0, 0);
     [SerializeField] private Vector3 pointBOffset = new Vector3(0, 5, 0);
 
+    [Header("Audio")]
+    [SerializeField] private string startSfxName = "PlatformStart";   
+    [SerializeField] private string motorLoopSfxName = "PlatformMotor"; 
+    [SerializeField, Range(0f, 1f)] private float sfxVolume = 0.8f;
+    [SerializeField] private float sfxMinDistance = 1.5f;
+    [SerializeField] private float sfxMaxDistance = 18f;
+
+    private string _motorLoopId;
+
+
     [Header("Player Attachment")]
     [SerializeField] private bool attachPlayer = true;
     [SerializeField] private LayerMask playerLayer;
@@ -131,10 +141,7 @@ public class MovingPlatform : MonoBehaviour
     {
         if (_isActivated)
         {
-            if (enableDebugLogs)
-            {
-                Debug.Log("[MovingPlatform] Platform already activated");
-            }
+            if (enableDebugLogs) Debug.Log("[MovingPlatform] Platform already activated");
             return;
         }
 
@@ -144,11 +151,20 @@ public class MovingPlatform : MonoBehaviour
         _targetPosition = pointB.position;
         _moveProgress = 0f;
 
+        _motorLoopId = $"platform_motor_{GetInstanceID()}";
+
+        if (!string.IsNullOrEmpty(startSfxName))
+            SoundManager.Instance?.PlayOneShot3D(startSfxName, transform, sfxVolume, sfxMinDistance, sfxMaxDistance);
+
+        if (!string.IsNullOrEmpty(motorLoopSfxName))
+            SoundManager.Instance?.PlayNamedLoop(_motorLoopId, motorLoopSfxName, sfxVolume,
+                                                 follow: transform, spatialBlend: 1f,
+                                                 minDistance: sfxMinDistance, maxDistance: sfxMaxDistance);
+
         if (enableDebugLogs)
-        {
             Debug.Log("[MovingPlatform] ✓ Platform activated and moving!");
-        }
     }
+
 
     private void MovePlatform()
     {
@@ -225,7 +241,10 @@ public class MovingPlatform : MonoBehaviour
 
     void OnDestroy()
     {
-      
+        if (!string.IsNullOrEmpty(_motorLoopId))
+            SoundManager.Instance?.StopNamedLoop(_motorLoopId);
+
+
         if (requiresBattery && linkedBatterySlot != null)
         {
             linkedBatterySlot.OnBatteryInserted -= OnBatteryInserted;
@@ -235,6 +254,8 @@ public class MovingPlatform : MonoBehaviour
         if (_attachedPlayer != null)
         {
             _attachedPlayer.SetParent(null);
+
+
         }
     }
 
