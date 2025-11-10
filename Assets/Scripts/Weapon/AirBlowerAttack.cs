@@ -1,5 +1,7 @@
 using UnityEngine;
 
+
+
 public class AirBlowerAttack : IWeaponAttackBehavior
 {
     private bool _isBlowing = false;
@@ -7,11 +9,13 @@ public class AirBlowerAttack : IWeaponAttackBehavior
     private GameObject _activeEffect;
     private float _nextPowerCost = 0f;
 
-   
+
+    private GameObject _cubeFogGO;
+    private bool _cubeFogOriginalActive;
+
     private string CurrentLoopId => _isReversed ? "air_blower_suck" : "air_blower_blow";
     private string CurrentLoopName => _isReversed ? "AirBlowerSuckLoop" : "AirBlowerBlowLoop";
 
-  
     private string _lastLoopId;
 
     public int GetPowerCostPerSecond() => 3;
@@ -27,7 +31,9 @@ public class AirBlowerAttack : IWeaponAttackBehavior
 
         CreateAirEffect(weaponTransform);
 
-        _lastLoopId = CurrentLoopId; 
+        DisableCubeFogIfPresent(weaponTransform);
+
+        _lastLoopId = CurrentLoopId;
         SoundManager.Instance?.PlayNamedLoop(CurrentLoopId, CurrentLoopName, 0.6f);
 
         Debug.Log($"[AirBlowerAttack] Started air {(_isReversed ? "sucking" : "blowing")}");
@@ -52,6 +58,9 @@ public class AirBlowerAttack : IWeaponAttackBehavior
         }
 
         PerformAirBlowLogic(weaponTransform);
+
+        if (_cubeFogGO != null && _cubeFogGO.activeSelf)
+            _cubeFogGO.SetActive(false);
     }
 
     public void StopAttack(Transform weaponTransform, PlayerPower playerPower)
@@ -65,6 +74,8 @@ public class AirBlowerAttack : IWeaponAttackBehavior
             Object.Destroy(_activeEffect);
             _activeEffect = null;
         }
+
+        RestoreCubeFog();
 
         SoundManager.Instance?.StopNamedLoop(CurrentLoopId);
         if (!string.IsNullOrEmpty(_lastLoopId) && _lastLoopId != CurrentLoopId)
@@ -127,6 +138,52 @@ public class AirBlowerAttack : IWeaponAttackBehavior
 
     public string GetAttackLoopSoundName() => CurrentLoopName;
     public bool HasLoopSound() => true;
+
+
+    private void DisableCubeFogIfPresent(Transform weaponTransform)
+    {
+        if (_cubeFogGO == null)
+        {
+            if (weaponTransform != null)
+            {
+                var root = weaponTransform.root;
+                _cubeFogGO = FindDeepChildByName(root, "CubeFog")?.gameObject;
+            }
+
+            if (_cubeFogGO == null)
+            {
+                var global = GameObject.Find("CubeFog");
+                if (global != null) _cubeFogGO = global;
+            }
+
+            if (_cubeFogGO != null)
+                _cubeFogOriginalActive = _cubeFogGO.activeSelf;
+        }
+
+        if (_cubeFogGO != null)
+            _cubeFogGO.SetActive(false);
+    }
+
+    private void RestoreCubeFog()
+    {
+        if (_cubeFogGO != null)
+        {
+            _cubeFogGO.SetActive(_cubeFogOriginalActive);
+          
+        }
+    }
+
+    private static Transform FindDeepChildByName(Transform parent, string name)
+    {
+        if (parent == null) return null;
+        foreach (Transform child in parent)
+        {
+            if (child.name == name) return child;
+            var result = FindDeepChildByName(child, name);
+            if (result != null) return result;
+        }
+        return null;
+    }
 }
 
 
