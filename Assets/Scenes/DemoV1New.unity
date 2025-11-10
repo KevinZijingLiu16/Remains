@@ -10754,6 +10754,11 @@ MonoBehaviour:
   autoCreatePoints: 1
   pointAOffset: {x: 0, y: 0, z: 0}
   pointBOffset: {x: 0, y: 0, z: 0}
+  startSfxName: PlatformStart
+  motorLoopSfxName: PlatformMotor
+  sfxVolume: 0.8
+  sfxMinDistance: 1.5
+  sfxMaxDistance: 18
   attachPlayer: 1
   playerLayer:
     serializedVersion: 2
@@ -26471,6 +26476,11 @@ MonoBehaviour:
   autoCreatePoints: 1
   pointAOffset: {x: 0, y: 0, z: 0}
   pointBOffset: {x: 0, y: 5, z: 0}
+  startSfxName: PlatformStart
+  motorLoopSfxName: PlatformMotor
+  sfxVolume: 0.8
+  sfxMinDistance: 1.5
+  sfxMaxDistance: 18
   attachPlayer: 1
   playerLayer:
     serializedVersion: 2
@@ -42511,6 +42521,11 @@ MonoBehaviour:
   autoCreatePoints: 1
   pointAOffset: {x: 0, y: 0, z: 0}
   pointBOffset: {x: 0, y: 5, z: 0}
+  startSfxName: PlatformStart
+  motorLoopSfxName: PlatformMotor
+  sfxVolume: 0.8
+  sfxMinDistance: 1.5
+  sfxMaxDistance: 18
   attachPlayer: 1
   playerLayer:
     serializedVersion: 2
@@ -43876,7 +43891,6 @@ MonoBehaviour:
   returnToMenuButton: {fileID: 1060150855}
   settingsBackButton: {fileID: 9132639957158284308}
   pauseActionRef: {fileID: 6792958962905392112, guid: b447556366fb23b42aaea5a29fd1045e, type: 3}
-  cancelActionRef: {fileID: -7253305306154305200, guid: b447556366fb23b42aaea5a29fd1045e, type: 3}
   openingSceneName: OpeningUI
   autoSelectFirstButton: 0
 --- !u!1 &825018563
@@ -70354,6 +70368,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 1082879477000117202, guid: c34d07b0b9eb47c4cb5eb1d4f8563791, type: 3}
+      propertyPath: m_IsKinematic
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 1716849685324335692, guid: c34d07b0b9eb47c4cb5eb1d4f8563791, type: 3}
       propertyPath: m_Name
       value: Battery (1)
@@ -101237,7 +101255,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fc128b8e8849ebc4fb974ea2c9ba93d7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  promptType: 3
+  promptType: 4
   promptText: "Hold the LEFT mouse button to shoot continuously\n\nBuild platform
     with big foams \n\nPower will be consumed\n"
   promptImage: {fileID: 21300000, guid: 828591cc7ee16f9409ddf3f558ae7e61, type: 3}
