@@ -32,6 +32,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/TempLevel1.unity
     guid: 18e5db0a902a2ef40aeaa5b399b809c3
+  - enabled: 1
+    path: Assets/Scenes/OpeningUI.unity
+    guid: 63a84973b84944644bce473cb724fb57
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
   m_UseUCBPForAssetBundles: 0

@@ -3,19 +3,20 @@ using UnityEngine;
 public class AirBlowerAttack : IWeaponAttackBehavior
 {
     private bool _isBlowing = false;
-    private bool _isReversed = false; 
+    private bool _isReversed = false;
     private GameObject _activeEffect;
     private float _nextPowerCost = 0f;
 
-    private string LoopSoundId => _isReversed ? "air_blower_suck" : "air_blower_blow";
-    private string LoopSoundName => _isReversed ? "AirBlowerSuckLoop" : "AirBlowerBlowLoop";
+   
+    private string CurrentLoopId => _isReversed ? "air_blower_suck" : "air_blower_blow";
+    private string CurrentLoopName => _isReversed ? "AirBlowerSuckLoop" : "AirBlowerBlowLoop";
+
+  
+    private string _lastLoopId;
 
     public int GetPowerCostPerSecond() => 3;
 
-    public bool CanAttack(PlayerPower playerPower)
-    {
-        return playerPower != null && playerPower.Current > 0;
-    }
+    public bool CanAttack(PlayerPower playerPower) => playerPower != null && playerPower.Current > 0;
 
     public void StartAttack(Transform weaponTransform, PlayerPower playerPower)
     {
@@ -26,11 +27,10 @@ public class AirBlowerAttack : IWeaponAttackBehavior
 
         CreateAirEffect(weaponTransform);
 
-        string mode = _isReversed ? "sucking" : "blowing";
+        _lastLoopId = CurrentLoopId; 
+        SoundManager.Instance?.PlayNamedLoop(CurrentLoopId, CurrentLoopName, 0.6f);
 
-        //SoundManager.Instance?.PlayNamedLoop(LoopSoundId, LoopSoundName, 0.6f);
-
-        Debug.Log($"[AirBlowerAttack] Started air {mode}");
+        Debug.Log($"[AirBlowerAttack] Started air {(_isReversed ? "sucking" : "blowing")}");
     }
 
     public void UpdateAttack(Transform weaponTransform, PlayerPower playerPower)
@@ -43,7 +43,6 @@ public class AirBlowerAttack : IWeaponAttackBehavior
             return;
         }
 
-        // Consume Power
         _nextPowerCost += Time.deltaTime * GetPowerCostPerSecond();
         if (_nextPowerCost >= 1f)
         {
@@ -52,7 +51,6 @@ public class AirBlowerAttack : IWeaponAttackBehavior
             _nextPowerCost -= cost;
         }
 
-        
         PerformAirBlowLogic(weaponTransform);
     }
 
@@ -67,13 +65,33 @@ public class AirBlowerAttack : IWeaponAttackBehavior
             Object.Destroy(_activeEffect);
             _activeEffect = null;
         }
-      //  SoundManager.Instance?.StopNamedLoop(LoopSoundId);
+
+        SoundManager.Instance?.StopNamedLoop(CurrentLoopId);
+        if (!string.IsNullOrEmpty(_lastLoopId) && _lastLoopId != CurrentLoopId)
+            SoundManager.Instance?.StopNamedLoop(_lastLoopId);
+
         Debug.Log("[AirBlowerAttack] Stopped air blowing");
     }
 
     public void SetReversed(bool reversed)
     {
+        if (_isReversed == reversed) return;
+
         _isReversed = reversed;
+
+        if (_isBlowing) SwitchLoopIfNeeded();
+    }
+
+    private void SwitchLoopIfNeeded()
+    {
+        if (!string.IsNullOrEmpty(_lastLoopId))
+            SoundManager.Instance?.StopNamedLoop(_lastLoopId);
+
+        SoundManager.Instance?.PlayNamedLoop(CurrentLoopId, CurrentLoopName, 0.6f);
+
+        _lastLoopId = CurrentLoopId;
+
+        Debug.Log($"[AirBlowerAttack] Switched loop to {CurrentLoopName}");
     }
 
     private void CreateAirEffect(Transform weaponTransform)
@@ -90,7 +108,6 @@ public class AirBlowerAttack : IWeaponAttackBehavior
     {
         if (weaponTransform == null) return;
 
-        
         Collider[] colliders = Physics.OverlapSphere(weaponTransform.position, 10f);
 
         foreach (var col in colliders)
@@ -102,22 +119,16 @@ public class AirBlowerAttack : IWeaponAttackBehavior
                     ? (weaponTransform.position - rb.position).normalized
                     : (rb.position - weaponTransform.position).normalized;
 
-                float force = 100f / Vector3.Distance(weaponTransform.position, rb.position);
+                float force = 100f / Mathf.Max(0.01f, Vector3.Distance(weaponTransform.position, rb.position));
                 rb.AddForce(direction * force);
             }
         }
     }
 
-    public string GetAttackLoopSoundName()
-    {
-        throw new System.NotImplementedException();
-    }
-
-    public bool HasLoopSound()
-    {
-        throw new System.NotImplementedException();
-    }
+    public string GetAttackLoopSoundName() => CurrentLoopName;
+    public bool HasLoopSound() => true;
 }
+
 
 
 
