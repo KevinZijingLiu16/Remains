@@ -80,7 +80,7 @@ Material:
     - Vector1_522DD793: -4
     - Vector1_5E73A52C: 27.3
     - Vector1_6098A7A7: 10.16
-    - Vector1_6DD21BAC: 100
+    - Vector1_6DD21BAC: 200
     - Vector1_6F1EA0F8: 50
     - Vector1_705D9E76: 12.8
     - Vector1_7EF60CFD: 1.37
@@ -94,6 +94,6 @@ Material:
     - _QueueControl: 0
     - _QueueOffset: 0
     m_Colors:
-    - Color_69AD1AD: {r: 1, g: 1, b: 1, a: 0.21960784}
+    - Color_69AD1AD: {r: 1, g: 1, b: 1, a: 0.3882353}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
