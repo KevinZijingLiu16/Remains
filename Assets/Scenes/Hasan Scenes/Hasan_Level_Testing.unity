@@ -998,7 +998,7 @@ MonoBehaviour:
   m_OverrideTileSize: 0
   m_TileSize: 256
   m_OverrideVoxelSize: 0
-  m_VoxelSize: 0.16666667
+  m_VoxelSize: 0.33333334
   m_MinRegionArea: 2
   m_NavMeshData: {fileID: 23800000, guid: af4a3ab7a8f4ee5499be4725c71cc2ed, type: 2}
   m_BuildHeightMesh: 0
@@ -36125,7 +36125,6 @@ Transform:
   - {fileID: 750867136}
   - {fileID: 575692202}
   - {fileID: 494341858}
-  - {fileID: 1117115244}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: -88.054, z: 0}
 --- !u!1001 &908423123
@@ -39334,9 +39333,9 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1117115243}
   serializedVersion: 2
-  m_LocalRotation: {x: -0.000000013894737, y: -0.7051609, z: -0.000000016870333, w: 0.7090473}
-  m_LocalPosition: {x: 4.57, y: 17.5, z: -19.59}
-  m_LocalScale: {x: 0.65411144, y: 0.6541116, z: 0.65411144}
+  m_LocalRotation: {x: 0.0000000017342996, y: -0.99980533, z: -0.000000021786786, w: 0.019731073}
+  m_LocalPosition: {x: -172.7843, y: 55.90488, z: 476.1208}
+  m_LocalScale: {x: 2.082127, y: 2.0821261, z: 2.082127}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 2031359893}
@@ -39501,7 +39500,7 @@ Transform:
   - {fileID: 624003727}
   - {fileID: 1202003788}
   - {fileID: 515897273}
-  m_Father: {fileID: 907906559}
+  m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: -89.685, z: 0}
 --- !u!1001 &1131747154
 PrefabInstance:
@@ -126973,6 +126972,7 @@ SceneRoots:
   - {fileID: 1728991444}
   - {fileID: 907906559}
   - {fileID: 1473470495}
+  - {fileID: 1117115244}
   - {fileID: 499310901}
   - {fileID: 336354959}
   - {fileID: 1093007899}
