@@ -11,7 +11,8 @@ public class StickyFoamPlatform : MonoBehaviour, IFoamPlatform
 
     [Header("Platform Settings")]
     public float lifetime = 60f;
-    public float stepHeight = 0.4f;
+    public float freezeBeforeDestroy = 5f;
+    public float stepHeight = 0.2f;
     public LayerMask playerLayer = 1;
 
     [Header("Visual")]
@@ -22,9 +23,18 @@ public class StickyFoamPlatform : MonoBehaviour, IFoamPlatform
     [Header("Trigger Control")]
     [SerializeField] private bool enableTriggerControl = true;
 
+    [Header("Player Resolve (Tag-based)")]
+    [SerializeField] private string playerTag = "Player";              
+    [SerializeField] private LayerMask playerBodyLayerMask = 0;        
+    [SerializeField] private Collider playerBodyCollider;              
+    private bool _ignoredPlayerBody = false;
+
+
+
     private bool _isStuck = false;
     private bool _isTryingToStick = false;
     private Transform _stuckTo = null;
+    private bool _isFrozen = false;
     private Vector3 _stuckLocalPosition;
     private Quaternion _stuckLocalRotation;
     private float _creationTime;
@@ -33,6 +43,7 @@ public class StickyFoamPlatform : MonoBehaviour, IFoamPlatform
     private Rigidbody _rigidbody;
     private Renderer _renderer;
     private FixedJoint _stickJoint;
+    
 
     public bool IsSteppable => _isStuck;
     public float PlatformHeight => stepHeight;
@@ -44,6 +55,7 @@ public class StickyFoamPlatform : MonoBehaviour, IFoamPlatform
         _rigidbody = GetComponent<Rigidbody>();
         _renderer = GetComponent<Renderer>();
         _creationTime = Time.time;
+      
 
         SetupFoamPhysics();
         SetupVisuals();
@@ -53,6 +65,7 @@ public class StickyFoamPlatform : MonoBehaviour, IFoamPlatform
     {
         _isTryingToStick = true;
         Destroy(gameObject, lifetime);
+        TryResolvePlayerBodyColliderByTag();
     }
 
     void Update()
@@ -65,14 +78,66 @@ public class StickyFoamPlatform : MonoBehaviour, IFoamPlatform
             }
         }
 
+        // 检查依附对象是否还存在
         if (_isStuck && _stuckTo == null)
         {
             UnstickFromSurface();
         }
 
+        // 生命周期管理：消失前冻结
+        float remainingTime = lifetime - (Time.time - _creationTime);
+        if (!_isFrozen && remainingTime <= freezeBeforeDestroy)
+        {
+            FreezeBeforeDestruction();
+        }
+
         UpdateVisualFeedback();
     }
+    private void TryResolvePlayerBodyColliderByTag()
+    {
+        if (playerBodyCollider) return;
 
+        var playerGO = GameObject.FindGameObjectWithTag(playerTag);
+        if (!playerGO)
+        {
+            Debug.LogWarning("[StickyFoamPlatform] Player with tag not found: " + playerTag);
+            return;
+        }
+
+        playerBodyCollider = PickMainBodyCollider(playerGO.transform);
+        if (!playerBodyCollider)
+        {
+            Debug.LogWarning("[StickyFoamPlatform] Could not resolve a non-trigger Player Body Collider under: " + playerGO.name);
+        }
+    }
+    private Collider PickMainBodyCollider(Transform root)
+    {
+        Collider best = null;
+        var cols = root.GetComponentsInChildren<Collider>(true);
+        foreach (var c in cols)
+        {
+            if (!c || c.isTrigger) continue;
+
+            // 如果设了 layer 过滤，优先返回匹配的
+            if (playerBodyLayerMask.value != 0)
+            {
+                if (((1 << c.gameObject.layer) & playerBodyLayerMask.value) != 0)
+                    return c;
+            }
+
+            // 否则先记录一个兜底
+            best ??= c;
+        }
+        return best;
+    }
+    public void SetPlayerBodyCollider(Collider col)
+    {
+        playerBodyCollider = col;
+    }
+    void OnTriggerEnter(Collider other)
+    {
+        HandleTriggerCollision(other, "OnTriggerEnter");
+    }
     private void SetupFoamPhysics()
     {
         _rigidbody.mass = 0.1f;
@@ -232,14 +297,12 @@ public class StickyFoamPlatform : MonoBehaviour, IFoamPlatform
             _stickJoint = null;
         }
 
-        _rigidbody.isKinematic = false;
-        _rigidbody.linearDamping = 1f;
-        _rigidbody.angularDamping = 3f;
+      
+        _rigidbody.isKinematic = true;
         _collider.isTrigger = true;
 
-        Debug.Log("[StickyFoamPlatform] Unstuck from surface");
+        Debug.Log("[StickyFoamPlatform] Unstuck from surface - staying kinematic");
     }
-
     void FixedUpdate()
     {
         if (_isStuck && _stuckTo != null && _stickJoint == null)
@@ -286,27 +349,47 @@ public class StickyFoamPlatform : MonoBehaviour, IFoamPlatform
         }
     }
 
-    void OnTriggerEnter(Collider other)
-    {
-        HandleTriggerCollision(other, "OnTriggerEnter");
-    }
+
 
     private void HandleTriggerCollision(Collider other, string eventType)
     {
-      
         if (!_isStuck || !enableTriggerControl || other == null) return;
+
+        // NEW: 如果还没解析成功，尝试根据当前触发的 collider 反向找玩家（增强鲁棒性）
+        if (!playerBodyCollider)
+        {
+            Transform root = other.attachedRigidbody ? other.attachedRigidbody.transform.root : other.transform.root;
+            if (root && root.CompareTag(playerTag))
+            {
+                playerBodyCollider = PickMainBodyCollider(root);
+            }
+        }
 
         if (other.CompareTag("head"))
         {
-          
+            // 平台上方：切成 Trigger + 忽略与玩家身体的实体碰撞
             _collider.isTrigger = true;
-            Debug.Log($"[{eventType}] {gameObject.name} (stuck) hit 'head' object: {other.name}. Set to Trigger.");
+
+            if (playerBodyCollider && !_ignoredPlayerBody)
+            {
+                Physics.IgnoreCollision(_collider, playerBodyCollider, true);
+                _ignoredPlayerBody = true;
+            }
+
+            Debug.Log($"[{eventType}] {gameObject.name} (stuck) hit 'head'. Set Trigger & ignore PlayerBody.");
         }
         else if (other.CompareTag("wheel"))
         {
-           
+            // 平台在脚下：切回非 Trigger + 恢复实体碰撞
             _collider.isTrigger = false;
-            Debug.Log($"[{eventType}] {gameObject.name} (stuck) hit 'wheel' object: {other.name}. Set to NOT Trigger.");
+
+            if (playerBodyCollider && _ignoredPlayerBody)
+            {
+                Physics.IgnoreCollision(_collider, playerBodyCollider, false);
+                _ignoredPlayerBody = false;
+            }
+
+            Debug.Log($"[{eventType}] {gameObject.name} (stuck) hit 'wheel'. Set Solid & restore PlayerBody collision.");
         }
     }
 
@@ -353,12 +436,35 @@ public class StickyFoamPlatform : MonoBehaviour, IFoamPlatform
 
     void OnDestroy()
     {
+        
+        if (_collider && playerBodyCollider && _ignoredPlayerBody)
+        {
+            Physics.IgnoreCollision(_collider, playerBodyCollider, false);
+            _ignoredPlayerBody = false;
+        }
+
         if (_stickJoint != null)
         {
             Destroy(_stickJoint);
         }
     }
+    private void FreezeBeforeDestruction()
+    {
+        _isFrozen = true;
 
+        if (_rigidbody != null)
+        {
+            
+            if (!_rigidbody.isKinematic)
+            {
+                _rigidbody.linearVelocity = Vector3.zero;
+                _rigidbody.angularVelocity = Vector3.zero;
+            }
+            _rigidbody.isKinematic = true;
+        }
+
+        Debug.Log("[StickyFoamPlatform] Frozen before destruction to prevent floating");
+    }
     void OnDrawGizmosSelected()
     {
         Gizmos.color = _isStuck ? Color.green : Color.yellow;

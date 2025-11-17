@@ -52,6 +52,12 @@ public class WeaponAttackController : MonoBehaviour
 
         if (enableDebugLogs) Debug.Log("[WeaponAttackController] System initialized");
     }
+    private bool IsPausedNow()
+    {
+        var pm = FindFirstObjectByType<PauseMenuManager>();
+        var p = FindFirstObjectByType<PauseManager>();
+        return (pm != null && pm.IsPaused) || (p != null && p.IsPaused) || Time.timeScale == 0f;
+    }
 
     private void OnWeaponEquipped(IWeapon weapon)
     {
@@ -154,6 +160,13 @@ public class WeaponAttackController : MonoBehaviour
 
     private void UpdateActiveAttacks()
     {
+        if (IsPausedNow())
+        {
+            if (_primaryAttackActive || _secondaryAttackActive)
+                StopAllAttacks();
+            return;
+        }
+
         var weaponTransform = GetCurrentWeaponTransform();
 
         if (_primaryAttackActive && _currentPrimaryAttack != null)

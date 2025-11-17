@@ -4605,6 +4605,7 @@ MonoBehaviour:
   partsToDirt: 1
   dirtyAllParts: 0
   onlyTriggerOnce: 0
+  dirtPerSecond: 0.2
   enableDebugLogs: 1
 --- !u!65 &416794550
 BoxCollider:
@@ -43371,6 +43372,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   sfxSource: {fileID: 1446500015}
+  loopSource: {fileID: 0}
   soundLibrary: {fileID: 11400000, guid: 470c9c6940c932c4e9e779cac0f83730, type: 2}
 --- !u!4 &1446500017
 Transform:
@@ -53777,9 +53779,17 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8873849828373940782, guid: 9a5ae1fa9d918ef4193b95a3ce48e5be, type: 3}
+      propertyPath: confirmActionRef
+      value: 
+      objectReference: {fileID: -6614244484200296865, guid: b447556366fb23b42aaea5a29fd1045e, type: 3}
+    - target: {fileID: 8873849828373940782, guid: 9a5ae1fa9d918ef4193b95a3ce48e5be, type: 3}
       propertyPath: allowMousePointer
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 8873849828373940782, guid: 9a5ae1fa9d918ef4193b95a3ce48e5be, type: 3}
+      propertyPath: navigateActionRef
+      value: 
+      objectReference: {fileID: -7496985388274266822, guid: b447556366fb23b42aaea5a29fd1045e, type: 3}
     - target: {fileID: 8873849828373940782, guid: 9a5ae1fa9d918ef4193b95a3ce48e5be, type: 3}
       propertyPath: normalButtonColor.b
       value: 0
@@ -54435,6 +54445,10 @@ PrefabInstance:
     - target: {fileID: 8488008983044618847, guid: 09c7ba42738258a47bfaad25b5ab5ee7, type: 3}
       propertyPath: m_Name
       value: Player
+      objectReference: {fileID: 0}
+    - target: {fileID: 8488008983044618847, guid: 09c7ba42738258a47bfaad25b5ab5ee7, type: 3}
+      propertyPath: m_TagString
+      value: head
       objectReference: {fileID: 0}
     - target: {fileID: 9168531384222051359, guid: 09c7ba42738258a47bfaad25b5ab5ee7, type: 3}
       propertyPath: _equipmentManager

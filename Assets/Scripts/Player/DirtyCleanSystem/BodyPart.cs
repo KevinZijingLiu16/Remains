@@ -5,12 +5,21 @@ public class BodyPart
 {
     public string partName = "Body Part";
     public Renderer renderer;
-   
+
     public bool changeAllMaterials = false;
-   //put indix 0 when changeAllMaterial = false
     public int materialIndex = 0;
 
     [HideInInspector] public Material originalMaterial;
-    [HideInInspector] public Material[] originalMaterials; // 保存所有原始材质
+    [HideInInspector] public Material[] originalMaterials;
+
     [HideInInspector] public bool isDirty = false;
+
+ 
+    [HideInInspector] public float dirtLevel = 0f;
+    [HideInInspector] public MaterialPropertyBlock mpb;
+
+ 
+    [HideInInspector] public Color baseColor = Color.white;
+    [HideInInspector] public float baseMetallic = 0f;
+    [HideInInspector] public float baseSmoothness = 0.5f;
 }

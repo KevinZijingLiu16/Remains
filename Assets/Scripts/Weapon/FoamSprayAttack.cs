@@ -56,7 +56,7 @@ public class FoamSprayAttack : IWeaponAttackBehavior
 
         _isAttacking = false;
 
-        // 清理特效
+     
         if (_activeEffect != null)
         {
             Object.Destroy(_activeEffect);

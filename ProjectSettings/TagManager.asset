@@ -21,11 +21,11 @@ TagManager:
   - Player
   - BlowBox
   - StickyPlatform
-  - 
-  - 
-  - 
-  - 
-  - 
+  - ObstacleProtector
+  - PlayerHead
+  - PlayerFoot
+  - Enemy
+  - NPC
   - 
   - 
   - 

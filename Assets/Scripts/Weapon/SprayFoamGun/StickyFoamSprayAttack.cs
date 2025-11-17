@@ -10,11 +10,14 @@ public class StickyFoamSprayAttack : IWeaponAttackBehavior
     private const string LOOP_SOUND_ID = "foam_spray_primary";
     private const string LOOP_SOUND_NAME = "FoamSprayLoop";
 
+
+
+
     [Header("Foam Spawn Settings")]
     public GameObject stickyFoamPrefab; 
     public float foamSpawnInterval = 0.3f; 
     public int foamBurstCount = 1; 
-    public float burstSpread = 1f; 
+    public float burstSpread = 0f; 
 
     [Header("Foam Launch Settings")]
     public float minLaunchSpeed = 15f; 
@@ -49,7 +52,7 @@ public class StickyFoamSprayAttack : IWeaponAttackBehavior
         _nextFoamSpawn = 0f;
 
         CreateFoamEffect(weaponTransform);
-        SoundManager.Instance?.PlayNamedLoop(LOOP_SOUND_ID, LOOP_SOUND_NAME, 0.7f);
+       SoundManager.Instance?.PlayNamedLoop(LOOP_SOUND_ID, LOOP_SOUND_NAME, 0.7f);
         Debug.Log("[StickyFoamSprayAttack] Started sticky foam spray");
     }
 
@@ -95,7 +98,7 @@ public class StickyFoamSprayAttack : IWeaponAttackBehavior
             Object.Destroy(_activeEffect);
             _activeEffect = null;
         }
-        SoundManager.Instance?.StopNamedLoop(LOOP_SOUND_ID);
+      SoundManager.Instance?.StopNamedLoop(LOOP_SOUND_ID);
         Debug.Log("[StickyFoamSprayAttack] Stopped sticky foam spray");
     }
 
@@ -149,7 +152,7 @@ public class StickyFoamSprayAttack : IWeaponAttackBehavior
     private void SpawnSingleStickyFoam(Transform weaponTransform, GameObject platformPrefab, int burstIndex)
     {
       
-        Vector3 spawnPosition = weaponTransform.position + weaponTransform.forward * 1f + weaponTransform.up * 0.8f;
+        Vector3 spawnPosition = weaponTransform.position + weaponTransform.forward * 1f + weaponTransform.up * 0.5f;
 
       
         Vector3 shootDirection = CalculateShootDirection(weaponTransform, burstIndex);
@@ -227,13 +230,6 @@ public class StickyFoamSprayAttack : IWeaponAttackBehavior
         aimAssist = assist;
     }
 
-    public string GetAttackLoopSoundName()
-    {
-        throw new System.NotImplementedException();
-    }
-
-    public bool HasLoopSound()
-    {
-        throw new System.NotImplementedException();
-    }
+    public string GetAttackLoopSoundName() => "FoamSprayLoop";
+    public bool HasLoopSound() => true;
 }

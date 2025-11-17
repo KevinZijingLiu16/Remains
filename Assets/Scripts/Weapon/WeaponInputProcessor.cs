@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 
 public class WeaponInputProcessor : MonoBehaviour, IWeaponInputProcessor
@@ -17,6 +18,17 @@ public class WeaponInputProcessor : MonoBehaviour, IWeaponInputProcessor
     public event System.Action OnPrimaryAttackStop;
     public event System.Action OnSecondaryAttackStart;
     public event System.Action OnSecondaryAttackStop;
+
+    private PauseMenuManager _pauseMenu;
+    private PauseManager _pauseManager;
+    private WeaponSelectionUI _weaponUI;
+
+    void Awake()
+    {
+        _pauseMenu = FindFirstObjectByType<PauseMenuManager>();
+        _pauseManager = FindFirstObjectByType<PauseManager>();
+        _weaponUI = FindFirstObjectByType<WeaponSelectionUI>();
+    }
 
     void OnEnable()
     {
@@ -61,9 +73,23 @@ public class WeaponInputProcessor : MonoBehaviour, IWeaponInputProcessor
             secondaryAttackAction.action.Disable();
         }
     }
+    private bool IsGloballyBlocked()
+    {
 
+        if ((_pauseMenu != null && _pauseMenu.IsPaused) ||
+       (_pauseManager != null && _pauseManager.IsPaused) ||
+       Time.timeScale == 0f)
+            return true;
+
+        if (_weaponUI != null && _weaponUI.IsVisible)
+            return true;
+
+
+        return false;
+    }
     private void OnPrimaryAttackStarted(InputAction.CallbackContext context)
     {
+        if (IsGloballyBlocked()) return;
         if (!_primaryAttackHeld)
         {
             _primaryAttackHeld = true;
@@ -82,6 +108,7 @@ public class WeaponInputProcessor : MonoBehaviour, IWeaponInputProcessor
 
     private void OnSecondaryAttackStarted(InputAction.CallbackContext context)
     {
+        if (IsGloballyBlocked()) return;
         if (!_secondaryAttackHeld)
         {
             _secondaryAttackHeld = true;

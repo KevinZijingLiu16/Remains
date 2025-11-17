@@ -9,31 +9,43 @@ public abstract class NPCBaseState : State
         this.stateMachine = stateMachine;
     }
 
-
     protected void MoveToPosition(Vector3 targetPosition, float deltaTime)
     {
-        if (stateMachine.Agent != null)
+        if (stateMachine.Agent == null) return;
+
+        if (!stateMachine.Agent.isOnNavMesh)
+        {
+            Debug.LogWarning($"[{stateMachine.gameObject.name}] Agent ²»ÔÚ NavMesh ÉÏ£¡");
+            return;
+        }
+
+        if (!stateMachine.Agent.pathPending)
         {
             stateMachine.Agent.SetDestination(targetPosition);
-            Vector3 movement = stateMachine.Agent.desiredVelocity;
-            stateMachine.Controller.Move(movement * deltaTime);
         }
     }
 
+
     protected void StopMovement()
     {
-        if (stateMachine.Agent != null)
+        if (stateMachine.Agent != null && stateMachine.Agent.isOnNavMesh)
         {
             stateMachine.Agent.ResetPath();
             stateMachine.Agent.velocity = Vector3.zero;
         }
     }
 
+
     protected void FaceDirection(Vector3 direction)
     {
+        if (direction.sqrMagnitude < 0.01f) return;
+
+       
+        direction.y = 0;
+        direction.Normalize();
+
         if (direction != Vector3.zero)
         {
-            direction.y = 0;
             Quaternion targetRotation = Quaternion.LookRotation(direction);
             stateMachine.transform.rotation = Quaternion.Slerp(
                 stateMachine.transform.rotation,
@@ -43,23 +55,34 @@ public abstract class NPCBaseState : State
         }
     }
 
+
     protected bool HasReachedDestination()
     {
         if (stateMachine.Agent == null) return false;
-
+        if (!stateMachine.Agent.isOnNavMesh) return false;
         if (stateMachine.Agent.pathPending) return false;
 
-        if (stateMachine.Agent.remainingDistance <= stateMachine.Agent.stoppingDistance)
+      
+        if (!stateMachine.Agent.hasPath)
         {
-            if (!stateMachine.Agent.hasPath || stateMachine.Agent.velocity.sqrMagnitude == 0f)
+            return true;
+        }
+
+
+        float remainingDistance = stateMachine.Agent.remainingDistance;
+        float stoppingDistance = stateMachine.Agent.stoppingDistance;
+
+        if (remainingDistance <= stoppingDistance)
+        {
+            if (stateMachine.Agent.velocity.sqrMagnitude < 0.01f)
             {
                 return true;
             }
         }
+
         return false;
     }
 
-   
     protected float GetNormalizedAnimationTime(string tag)
     {
         if (stateMachine.Animator == null) return 0f;
@@ -75,6 +98,25 @@ public abstract class NPCBaseState : State
         {
             return currentInfo.normalizedTime;
         }
+
         return 0f;
+    }
+
+
+    protected float GetHorizontalDistanceToTarget(Vector3 targetPosition)
+    {
+        Vector3 horizontalPosition = new Vector3(
+            stateMachine.transform.position.x,
+            0,
+            stateMachine.transform.position.z
+        );
+
+        Vector3 horizontalTarget = new Vector3(
+            targetPosition.x,
+            0,
+            targetPosition.z
+        );
+
+        return Vector3.Distance(horizontalPosition, horizontalTarget);
     }
 }

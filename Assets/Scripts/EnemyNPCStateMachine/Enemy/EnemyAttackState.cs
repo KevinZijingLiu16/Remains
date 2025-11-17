@@ -81,7 +81,6 @@ public class EnemyAttackState : EnemyState
             Debug.Log("[EnemyAttackState] Performing attack!");
         }
 
-      
         if (stateMachine.AttackHitbox != null)
         {
             Collider[] hits = Physics.OverlapSphere(
@@ -94,14 +93,14 @@ public class EnemyAttackState : EnemyState
             {
                 if (hit.CompareTag("Player"))
                 {
-                  
                     var dirtSystem = hit.GetComponent<PlayerDirtSystem>();
                     if (dirtSystem != null && dirtSystem.IsAnyDirty)
                     {
-                        dirtSystem.CleanRandomDirtyPart();
+                    
+                        dirtSystem.RemoveDirtFromRandom(2, 1f); //(how many body parts, how much to clean for each part)
+                                                                  
                     }
 
-                  
                     var playerHealth = hit.GetComponent<PlayerHealth>();
                     if (playerHealth != null)
                     {
@@ -110,10 +109,9 @@ public class EnemyAttackState : EnemyState
 
                     if (stateMachine.EnableDebugLogs)
                     {
-                        Debug.Log("[EnemyAttackState] Hit player!");
+                        Debug.Log("[EnemyAttackState] Hit player and cleaned dirt!");
                     }
-
-                    break; 
+                    break;
                 }
             }
         }

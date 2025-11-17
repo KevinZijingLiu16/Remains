@@ -61,7 +61,8 @@ public abstract class BaseTrap : MonoBehaviour, IDamageDealer
       
         if (hitEffect != null)
         {
-            Instantiate(hitEffect, transform.position, transform.rotation);
+            hitEffect.gameObject.SetActive(true);
+         hitEffect.GetComponent<ParticleSystem>().Play();
         }
 
      

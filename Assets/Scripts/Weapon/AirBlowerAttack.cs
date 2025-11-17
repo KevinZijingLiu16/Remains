@@ -1,21 +1,26 @@
 using UnityEngine;
 
+
+
 public class AirBlowerAttack : IWeaponAttackBehavior
 {
     private bool _isBlowing = false;
-    private bool _isReversed = false; 
+    private bool _isReversed = false;
     private GameObject _activeEffect;
     private float _nextPowerCost = 0f;
 
-    private string LoopSoundId => _isReversed ? "air_blower_suck" : "air_blower_blow";
-    private string LoopSoundName => _isReversed ? "AirBlowerSuckLoop" : "AirBlowerBlowLoop";
+
+    private GameObject _cubeFogGO;
+    private bool _cubeFogOriginalActive;
+
+    private string CurrentLoopId => _isReversed ? "air_blower_suck" : "air_blower_blow";
+    private string CurrentLoopName => _isReversed ? "AirBlowerSuckLoop" : "AirBlowerBlowLoop";
+
+    private string _lastLoopId;
 
     public int GetPowerCostPerSecond() => 3;
 
-    public bool CanAttack(PlayerPower playerPower)
-    {
-        return playerPower != null && playerPower.Current > 0;
-    }
+    public bool CanAttack(PlayerPower playerPower) => playerPower != null && playerPower.Current > 0;
 
     public void StartAttack(Transform weaponTransform, PlayerPower playerPower)
     {
@@ -26,11 +31,12 @@ public class AirBlowerAttack : IWeaponAttackBehavior
 
         CreateAirEffect(weaponTransform);
 
-        string mode = _isReversed ? "sucking" : "blowing";
+        DisableCubeFogIfPresent(weaponTransform);
 
-        SoundManager.Instance?.PlayNamedLoop(LoopSoundId, LoopSoundName, 0.6f);
+        _lastLoopId = CurrentLoopId;
+        SoundManager.Instance?.PlayNamedLoop(CurrentLoopId, CurrentLoopName, 0.6f);
 
-        Debug.Log($"[AirBlowerAttack] Started air {mode}");
+        Debug.Log($"[AirBlowerAttack] Started air {(_isReversed ? "sucking" : "blowing")}");
     }
 
     public void UpdateAttack(Transform weaponTransform, PlayerPower playerPower)
@@ -43,7 +49,6 @@ public class AirBlowerAttack : IWeaponAttackBehavior
             return;
         }
 
-        // Consume Power
         _nextPowerCost += Time.deltaTime * GetPowerCostPerSecond();
         if (_nextPowerCost >= 1f)
         {
@@ -52,8 +57,10 @@ public class AirBlowerAttack : IWeaponAttackBehavior
             _nextPowerCost -= cost;
         }
 
-        
         PerformAirBlowLogic(weaponTransform);
+
+        if (_cubeFogGO != null && _cubeFogGO.activeSelf)
+            _cubeFogGO.SetActive(false);
     }
 
     public void StopAttack(Transform weaponTransform, PlayerPower playerPower)
@@ -67,13 +74,35 @@ public class AirBlowerAttack : IWeaponAttackBehavior
             Object.Destroy(_activeEffect);
             _activeEffect = null;
         }
-        SoundManager.Instance?.StopNamedLoop(LoopSoundId);
+
+        RestoreCubeFog();
+
+        SoundManager.Instance?.StopNamedLoop(CurrentLoopId);
+        if (!string.IsNullOrEmpty(_lastLoopId) && _lastLoopId != CurrentLoopId)
+            SoundManager.Instance?.StopNamedLoop(_lastLoopId);
+
         Debug.Log("[AirBlowerAttack] Stopped air blowing");
     }
 
     public void SetReversed(bool reversed)
     {
+        if (_isReversed == reversed) return;
+
         _isReversed = reversed;
+
+        if (_isBlowing) SwitchLoopIfNeeded();
+    }
+
+    private void SwitchLoopIfNeeded()
+    {
+        if (!string.IsNullOrEmpty(_lastLoopId))
+            SoundManager.Instance?.StopNamedLoop(_lastLoopId);
+
+        SoundManager.Instance?.PlayNamedLoop(CurrentLoopId, CurrentLoopName, 0.6f);
+
+        _lastLoopId = CurrentLoopId;
+
+        Debug.Log($"[AirBlowerAttack] Switched loop to {CurrentLoopName}");
     }
 
     private void CreateAirEffect(Transform weaponTransform)
@@ -90,7 +119,6 @@ public class AirBlowerAttack : IWeaponAttackBehavior
     {
         if (weaponTransform == null) return;
 
-        
         Collider[] colliders = Physics.OverlapSphere(weaponTransform.position, 10f);
 
         foreach (var col in colliders)
@@ -102,22 +130,62 @@ public class AirBlowerAttack : IWeaponAttackBehavior
                     ? (weaponTransform.position - rb.position).normalized
                     : (rb.position - weaponTransform.position).normalized;
 
-                float force = 100f / Vector3.Distance(weaponTransform.position, rb.position);
+                float force = 100f / Mathf.Max(0.01f, Vector3.Distance(weaponTransform.position, rb.position));
                 rb.AddForce(direction * force);
             }
         }
     }
 
-    public string GetAttackLoopSoundName()
+    public string GetAttackLoopSoundName() => CurrentLoopName;
+    public bool HasLoopSound() => true;
+
+
+    private void DisableCubeFogIfPresent(Transform weaponTransform)
     {
-        throw new System.NotImplementedException();
+        if (_cubeFogGO == null)
+        {
+            if (weaponTransform != null)
+            {
+                var root = weaponTransform.root;
+                _cubeFogGO = FindDeepChildByName(root, "CubeFog")?.gameObject;
+            }
+
+            if (_cubeFogGO == null)
+            {
+                var global = GameObject.Find("CubeFog");
+                if (global != null) _cubeFogGO = global;
+            }
+
+            if (_cubeFogGO != null)
+                _cubeFogOriginalActive = _cubeFogGO.activeSelf;
+        }
+
+        if (_cubeFogGO != null)
+            _cubeFogGO.SetActive(false);
     }
 
-    public bool HasLoopSound()
+    private void RestoreCubeFog()
     {
-        throw new System.NotImplementedException();
+        if (_cubeFogGO != null)
+        {
+            _cubeFogGO.SetActive(_cubeFogOriginalActive);
+          
+        }
+    }
+
+    private static Transform FindDeepChildByName(Transform parent, string name)
+    {
+        if (parent == null) return null;
+        foreach (Transform child in parent)
+        {
+            if (child.name == name) return child;
+            var result = FindDeepChildByName(child, name);
+            if (result != null) return result;
+        }
+        return null;
     }
 }
+
 
 
 

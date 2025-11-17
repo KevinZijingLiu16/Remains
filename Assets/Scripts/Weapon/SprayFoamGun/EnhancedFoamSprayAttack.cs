@@ -43,7 +43,7 @@ public class EnhancedFoamSprayAttack : IWeaponAttackBehavior
 
         CreateFoamEffect(weaponTransform);
 
-        SoundManager.Instance?.PlayNamedLoop(LOOP_SOUND_ID, LOOP_SOUND_NAME, 0.8f);
+       SoundManager.Instance?.PlayNamedLoop(LOOP_SOUND_ID, LOOP_SOUND_NAME, 0.8f);
         Debug.Log("[EnhancedFoamSprayAttack] Started enhanced foam spray");
     }
 
@@ -89,7 +89,7 @@ public class EnhancedFoamSprayAttack : IWeaponAttackBehavior
             Object.Destroy(_activeEffect);
             _activeEffect = null;
         }
-        SoundManager.Instance?.StopNamedLoop(LOOP_SOUND_ID);
+       SoundManager.Instance?.StopNamedLoop(LOOP_SOUND_ID);
 
         Debug.Log("[EnhancedFoamSprayAttack] Stopped enhanced foam spray");
     }
@@ -221,13 +221,6 @@ public class EnhancedFoamSprayAttack : IWeaponAttackBehavior
         upwardForce = Mathf.Clamp01(force);
     }
 
-    public string GetAttackLoopSoundName()
-    {
-        throw new System.NotImplementedException();
-    }
-
-    public bool HasLoopSound()
-    {
-        throw new System.NotImplementedException();
-    }
+    public string GetAttackLoopSoundName() => "FoamSprayEnhancedLoop";
+    public bool HasLoopSound() => true;
 }

@@ -49,7 +49,29 @@ public class ProximityReactionEmitter : MonoBehaviour
 
         inside = nowInside;
     }
+    void OnDestroy()
+    {
+        
+        if (player != null)
+        {
+            var svc = ReactionManager.Instance;
+            if (svc != null)
+            {
+                svc.HideReaction(player.gameObject);
+            }
+        }
+    }
 
+    void OnDisable()
+    {
+       
+        if (inside && player != null)
+        {
+            Hide();
+            inside = false;
+
+        }
+    }
     private void Show()
     {
         var svc = ReactionManager.Instance;

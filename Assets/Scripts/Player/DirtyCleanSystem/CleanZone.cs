@@ -4,88 +4,55 @@ using UnityEngine;
 public class CleanZone : MonoBehaviour
 {
     [Header("Clean Settings")]
-    [SerializeField] private int partsToClean = 1; // 每次接触清洁多少个部位
-    [SerializeField] private bool cleanAllParts = false; // 是否一次性全部清洁
-    [SerializeField] private bool continuousCleaning = false; // 是否持续清洁
-    [SerializeField] private float cleaningInterval = 1f; // 持续清洁的间隔
-    [SerializeField] private bool onlyTriggerOnce = false; // 是否只触发一次
+    [SerializeField] private bool cleanAllParts = true;     
+    [SerializeField] private int partsToClean = 1;         
+    [SerializeField]
+    private float cleanPerSecond = 0.25f;
+
+ 
+    [SerializeField] private bool cleanOnEnter = false;
+    [SerializeField, Range(0f, 1f)] private float enterCleanAmount = 0.1f;
 
     [Header("Debug")]
     [SerializeField] private bool enableDebugLogs = true;
 
-    private bool _hasTriggered = false;
-    private float _cleaningTimer = 0f;
-    private PlayerDirtSystem _currentPlayerInZone;
-
-    void Start()
+    private void Start()
     {
-        // 确保Collider是Trigger
-        var collider = GetComponent<Collider>();
-        if (!collider.isTrigger)
+        var col = GetComponent<Collider>();
+        if (!col.isTrigger)
         {
-            collider.isTrigger = true;
+            col.isTrigger = true;
             Debug.LogWarning("[CleanZone] Collider was not set as trigger, automatically fixed.");
         }
     }
 
-    void Update()
+    private void OnTriggerEnter(Collider other)
     {
-        if (continuousCleaning && _currentPlayerInZone != null)
-        {
-            _cleaningTimer += Time.deltaTime;
+        if (!other.CompareTag("Player")) return;
 
-            if (_cleaningTimer >= cleaningInterval)
-            {
-                CleanPlayer(_currentPlayerInZone);
-                _cleaningTimer = 0f;
-            }
+        var dirtSystem = other.GetComponent<PlayerDirtSystem>();
+        if (!dirtSystem) return;
+
+        if (cleanOnEnter)
+        {
+            if (cleanAllParts) dirtSystem.RemoveDirtFromAll(enterCleanAmount);
+            else dirtSystem.RemoveDirtFromRandom(partsToClean, enterCleanAmount);
         }
+
+        if (enableDebugLogs)
+            Debug.Log($"[CleanZone] Player ENTER at {transform.position}");
     }
 
-    void OnTriggerEnter(Collider other)
+    private void OnTriggerStay(Collider other)
     {
-        if (onlyTriggerOnce && _hasTriggered) return;
+        if (!other.CompareTag("Player")) return;
 
-        if (other.CompareTag("Player"))
-        {
-            var dirtSystem = other.GetComponent<PlayerDirtSystem>();
-            if (dirtSystem != null)
-            {
-                _currentPlayerInZone = dirtSystem;
-                CleanPlayer(dirtSystem);
+        var dirtSystem = other.GetComponent<PlayerDirtSystem>();
+        if (!dirtSystem) return;
 
-                _hasTriggered = true;
+        float delta = cleanPerSecond * Time.deltaTime;
 
-                if (enableDebugLogs)
-                {
-                    Debug.Log($"[CleanZone] Player entered clean zone at {transform.position}");
-                }
-            }
-        }
-    }
-
-    void OnTriggerExit(Collider other)
-    {
-        if (other.CompareTag("Player"))
-        {
-            _currentPlayerInZone = null;
-            _cleaningTimer = 0f;
-        }
-    }
-
-    private void CleanPlayer(PlayerDirtSystem dirtSystem)
-    {
-        if (cleanAllParts)
-        {
-            dirtSystem.CleanAllBodyParts();
-        }
-        else
-        {
-            for (int i = 0; i < partsToClean; i++)
-            {
-                if (!dirtSystem.CleanRandomDirtyPart())
-                    break; // 没有脏的部位了
-            }
-        }
+        if (cleanAllParts) dirtSystem.RemoveDirtFromAll(delta);
+        else dirtSystem.RemoveDirtFromRandom(partsToClean, delta);
     }
 }

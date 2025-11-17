@@ -1,28 +1,33 @@
 using UnityEngine;
 using System.Collections.Generic;
 
-/// <summary>
-/// 管理玩家身体部位的脏污状态
-/// </summary>
+
 public class PlayerDirtSystem : MonoBehaviour
 {
     [Header("Body Parts")]
     [SerializeField] private List<BodyPart> bodyParts = new List<BodyPart>();
 
     [Header("Materials")]
-    [SerializeField] private Material dirtyMaterial;
+    [SerializeField] private Material dirtyMaterial; 
+
+    [Header("Dirt Blend Settings")]
+    [SerializeField]
+    private float targetMetallic = 0.8f;
+    [SerializeField]
+    private float targetSmoothness = 0.9f;
+    [SerializeField]
+    private Color dirtTint = new Color(0.05f, 0.1f, 0.05f, 0f);
 
     [Header("Debug")]
     [SerializeField] private bool enableDebugLogs = true;
 
     private int _dirtyPartsCount = 0;
 
-    // Events
-    public System.Action<int, int> OnDirtChanged; // (dirtyCount, totalCount)
-    public System.Action OnBecameDirty; // 第一次变脏
-    public System.Action OnBecameClean; // 完全干净
-    public System.Action<BodyPart> OnBodyPartDirtied; // 某个部位变脏
-    public System.Action<BodyPart> OnBodyPartCleaned; // 某个部位变干净
+    public System.Action<int, int> OnDirtChanged;
+    public System.Action OnBecameDirty;
+    public System.Action OnBecameClean;
+    public System.Action<BodyPart> OnBodyPartDirtied;
+    public System.Action<BodyPart> OnBodyPartCleaned;
 
     public int DirtyPartsCount => _dirtyPartsCount;
     public int TotalPartsCount => bodyParts.Count;
@@ -30,43 +35,204 @@ public class PlayerDirtSystem : MonoBehaviour
     public bool IsFullyClean => _dirtyPartsCount == 0;
     public bool IsFullyDirty => _dirtyPartsCount == bodyParts.Count;
 
+  
+    private static readonly int BaseColorID = Shader.PropertyToID("_BaseColor");
+    private static readonly int ColorID = Shader.PropertyToID("_Color");
+    private static readonly int MetallicID = Shader.PropertyToID("_Metallic");
+    private static readonly int SmoothID = Shader.PropertyToID("_Smoothness");
+
     void Start()
     {
         InitializeBodyParts();
-
         if (enableDebugLogs)
-        {
             Debug.Log($"[PlayerDirtSystem] Initialized with {bodyParts.Count} body parts");
-        }
     }
 
     private void InitializeBodyParts()
     {
         foreach (var part in bodyParts)
         {
-            if (part.renderer != null)
-            {
-                if (part.changeAllMaterials)
-                {
-                    // 保存所有原始材质
-                    part.originalMaterials = part.renderer.materials;
-                }
-                else if (part.materialIndex >= 0 && part.materialIndex < part.renderer.materials.Length)
-                {
-                    // 只保存指定索引的材质
-                    part.originalMaterial = part.renderer.materials[part.materialIndex];
-                }
+            if (!part.renderer) continue;
 
-                part.isDirty = false;
+          
+            if (part.changeAllMaterials)
+                part.originalMaterials = part.renderer.materials;
+            else if (part.materialIndex >= 0 && part.materialIndex < part.renderer.materials.Length)
+                part.originalMaterial = part.renderer.materials[part.materialIndex];
+
+           
+            Material srcMat = null;
+            var shared = part.renderer.sharedMaterials;
+            if (shared != null && shared.Length > 0)
+            {
+                int idx = Mathf.Clamp(part.materialIndex, 0, shared.Length - 1);
+                srcMat = shared[idx];
             }
+
+            if (srcMat)
+            {
+                if (srcMat.HasProperty(BaseColorID))
+                    part.baseColor = srcMat.GetColor(BaseColorID);
+                else if (srcMat.HasProperty(ColorID))
+                    part.baseColor = srcMat.GetColor(ColorID);
+
+                if (srcMat.HasProperty(MetallicID))
+                    part.baseMetallic = srcMat.GetFloat(MetallicID);
+
+                if (srcMat.HasProperty(SmoothID))
+                    part.baseSmoothness = srcMat.GetFloat(SmoothID);
+            }
+
+            part.mpb = new MaterialPropertyBlock();
+            part.dirtLevel = 0f;
+            part.isDirty = false;
         }
 
         _dirtyPartsCount = 0;
     }
 
-    /// <summary>
-    /// 让指定部位变脏
-    /// </summary>
+ 
+
+    public void AddDirtToAll(float delta)
+    {
+        bool wasClean = IsFullyClean;
+        foreach (var part in bodyParts)
+            IncreaseDirtLevel(part, delta);
+
+        if (wasClean && !IsFullyClean) OnBecameDirty?.Invoke();
+    }
+
+    public void AddDirtToRandom(int count, float delta)
+    {
+        var notFull = bodyParts.FindAll(p => p.dirtLevel < 1f);
+        if (notFull.Count == 0) return;
+
+        count = Mathf.Clamp(count, 1, notFull.Count);
+        for (int i = 0; i < count; i++)
+        {
+            var p = notFull[Random.Range(0, notFull.Count)];
+            IncreaseDirtLevel(p, delta);
+        }
+    }
+
+    private void IncreaseDirtLevel(BodyPart part, float delta)
+    {
+        if (!part?.renderer) return;
+
+        float before = part.dirtLevel;
+        part.dirtLevel = Mathf.Clamp01(part.dirtLevel + delta);
+
+     
+        if (before <= 0f && part.dirtLevel > 0f)
+        {
+            part.isDirty = true;
+            _dirtyPartsCount++;
+            OnBodyPartDirtied?.Invoke(part);
+            OnDirtChanged?.Invoke(_dirtyPartsCount, bodyParts.Count);
+        }
+
+        ApplyDirtBlend(part);
+
+       
+    }
+
+    private void ApplyDirtBlend(BodyPart part)
+    {
+      
+        Color target = Color.Lerp(part.baseColor, Color.black + dirtTint, part.dirtLevel);
+        float metallic = Mathf.Lerp(part.baseMetallic, targetMetallic, part.dirtLevel);
+        float smoothness = Mathf.Lerp(part.baseSmoothness, targetSmoothness, part.dirtLevel);
+
+     
+        if (part.changeAllMaterials)
+        {
+            int subCount = part.renderer.sharedMaterials?.Length ?? 1;
+            for (int i = 0; i < subCount; i++)
+            {
+                part.mpb.Clear();
+                if (part.renderer.sharedMaterials[i].HasProperty(BaseColorID))
+                    part.mpb.SetColor(BaseColorID, target);
+                else
+                    part.mpb.SetColor(ColorID, target);
+
+                if (part.renderer.sharedMaterials[i].HasProperty(MetallicID))
+                    part.mpb.SetFloat(MetallicID, metallic);
+                if (part.renderer.sharedMaterials[i].HasProperty(SmoothID))
+                    part.mpb.SetFloat(SmoothID, smoothness);
+
+                part.renderer.SetPropertyBlock(part.mpb, i);
+            }
+        }
+        else
+        {
+            int i = Mathf.Clamp(part.materialIndex, 0, (part.renderer.sharedMaterials?.Length ?? 1) - 1);
+            part.mpb.Clear();
+            var mat = part.renderer.sharedMaterials[i];
+
+            if (mat.HasProperty(BaseColorID))
+                part.mpb.SetColor(BaseColorID, target);
+            else
+                part.mpb.SetColor(ColorID, target);
+
+            if (mat.HasProperty(MetallicID))
+                part.mpb.SetFloat(MetallicID, metallic);
+            if (mat.HasProperty(SmoothID))
+                part.mpb.SetFloat(SmoothID, smoothness);
+
+            part.renderer.SetPropertyBlock(part.mpb, i);
+        }
+    }
+
+  
+    public void RemoveDirtFromAll(float delta)
+    {
+        bool wasAnyDirty = IsAnyDirty;
+        foreach (var part in bodyParts)
+            DecreaseDirtLevel(part, delta);
+
+        if (wasAnyDirty && IsFullyClean)
+            OnBecameClean?.Invoke();
+    }
+
+ 
+    public void RemoveDirtFromRandom(int count, float delta)
+    {
+        var dirtyParts = bodyParts.FindAll(p => p.dirtLevel > 0f);
+        if (dirtyParts.Count == 0) return;
+
+        count = Mathf.Clamp(count, 1, dirtyParts.Count);
+        for (int i = 0; i < count; i++)
+        {
+            var p = dirtyParts[Random.Range(0, dirtyParts.Count)];
+            DecreaseDirtLevel(p, delta);
+        }
+    }
+
+
+    private void DecreaseDirtLevel(BodyPart part, float delta)
+    {
+        if (!part?.renderer) return;
+
+        float before = part.dirtLevel;
+        part.dirtLevel = Mathf.Clamp01(part.dirtLevel - delta);
+
+       
+        if (before > 0f && part.dirtLevel <= 0f)
+        {
+            if (part.isDirty)
+            {
+                part.isDirty = false;
+                _dirtyPartsCount = Mathf.Max(0, _dirtyPartsCount - 1);
+                OnBodyPartCleaned?.Invoke(part);
+                OnDirtChanged?.Invoke(_dirtyPartsCount, bodyParts.Count);
+            }
+        }
+
+       
+        ApplyDirtBlend(part);
+    }
+
+
     public bool DirtyBodyPart(string partName)
     {
         var part = bodyParts.Find(p => p.partName == partName);
@@ -77,19 +243,17 @@ public class PlayerDirtSystem : MonoBehaviour
         return false;
     }
 
-    /// <summary>
-    /// 让指定部位变脏
-    /// </summary>
+
     public bool DirtyBodyPart(BodyPart part)
     {
         if (part == null || part.isDirty || part.renderer == null) return false;
 
         bool wasClean = IsFullyClean;
 
-        // 改变材质
+    
         if (part.changeAllMaterials)
         {
-            // 改变所有材质
+           
             Material[] materials = part.renderer.materials;
             for (int i = 0; i < materials.Length; i++)
             {
@@ -99,7 +263,7 @@ public class PlayerDirtSystem : MonoBehaviour
         }
         else
         {
-            // 只改变指定索引的材质
+            
             Material[] materials = part.renderer.materials;
             if (part.materialIndex >= 0 && part.materialIndex < materials.Length)
             {
@@ -114,7 +278,7 @@ public class PlayerDirtSystem : MonoBehaviour
         OnBodyPartDirtied?.Invoke(part);
         OnDirtChanged?.Invoke(_dirtyPartsCount, bodyParts.Count);
 
-        // 如果是第一次变脏
+       
         if (wasClean)
         {
             OnBecameDirty?.Invoke();
@@ -133,9 +297,6 @@ public class PlayerDirtSystem : MonoBehaviour
         return true;
     }
 
-    /// <summary>
-    /// 让随机一个脏的部位变干净
-    /// </summary>
     public bool CleanRandomDirtyPart()
     {
         var dirtyParts = bodyParts.FindAll(p => p.isDirty);
@@ -145,9 +306,6 @@ public class PlayerDirtSystem : MonoBehaviour
         return CleanBodyPart(randomPart);
     }
 
-    /// <summary>
-    /// 让指定部位变干净
-    /// </summary>
     public bool CleanBodyPart(string partName)
     {
         var part = bodyParts.Find(p => p.partName == partName);
@@ -158,17 +316,15 @@ public class PlayerDirtSystem : MonoBehaviour
         return false;
     }
 
-    /// <summary>
-    /// 让指定部位变干净
-    /// </summary>
+
     public bool CleanBodyPart(BodyPart part)
     {
         if (part == null || !part.isDirty || part.renderer == null) return false;
 
-        // 恢复原材质
+      
         if (part.changeAllMaterials)
         {
-            // 恢复所有材质
+           
             if (part.originalMaterials != null && part.originalMaterials.Length > 0)
             {
                 part.renderer.materials = part.originalMaterials;
@@ -176,7 +332,7 @@ public class PlayerDirtSystem : MonoBehaviour
         }
         else
         {
-            // 只恢复指定索引的材质
+           
             Material[] materials = part.renderer.materials;
             if (part.materialIndex >= 0 && part.materialIndex < materials.Length)
             {
@@ -191,7 +347,7 @@ public class PlayerDirtSystem : MonoBehaviour
         OnBodyPartCleaned?.Invoke(part);
         OnDirtChanged?.Invoke(_dirtyPartsCount, bodyParts.Count);
 
-        // 如果完全干净了
+       
         if (IsFullyClean)
         {
             OnBecameClean?.Invoke();
@@ -210,9 +366,7 @@ public class PlayerDirtSystem : MonoBehaviour
         return true;
     }
 
-    /// <summary>
-    /// 让所有部位变干净
-    /// </summary>
+ 
     public void CleanAllBodyParts()
     {
         foreach (var part in bodyParts)
@@ -224,9 +378,7 @@ public class PlayerDirtSystem : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// 让所有部位变脏
-    /// </summary>
+  
     public void DirtyAllBodyParts()
     {
         foreach (var part in bodyParts)
@@ -238,9 +390,7 @@ public class PlayerDirtSystem : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// 让随机N个部位变脏
-    /// </summary>
+   
     public void DirtyRandomParts(int count)
     {
         var cleanParts = bodyParts.FindAll(p => !p.isDirty);
@@ -256,7 +406,7 @@ public class PlayerDirtSystem : MonoBehaviour
         }
     }
 
-    // Context Menu for testing
+ 
     [ContextMenu("Test: Dirty Random Part")]
     public void TestDirtyRandomPart()
     {
