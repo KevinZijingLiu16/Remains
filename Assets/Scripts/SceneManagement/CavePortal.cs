@@ -92,10 +92,9 @@ public class CavePortal : MonoBehaviour
     {
         if (_currentPlayer == null) return;
 
-        // 检查是否有访问权限
         if (GameProgressManager.Instance == null || !GameProgressManager.Instance.CanAccessLevel(targetSceneName))
         {
-            Debug.LogWarning($"[CavePortal] 无法进入 {targetSceneName}：缺少钥匙");
+      
             return;
         }
 

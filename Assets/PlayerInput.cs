@@ -226,6 +226,42 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""QuickCycleAction"",
+                    ""type"": ""Button"",
+                    ""id"": ""2ead82cd-0c1f-46c4-a9fe-e529e5bf4fd6"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Hotkey1Action"",
+                    ""type"": ""Button"",
+                    ""id"": ""a278c429-293b-4bcf-a326-a2dabe353084"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Hotkey2Action"",
+                    ""type"": ""Button"",
+                    ""id"": ""208bbb90-2f54-42a6-9d65-63cee9a529b8"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Hotkey3Action"",
+                    ""type"": ""Button"",
+                    ""id"": ""202446dc-0b7f-4c37-bcdf-8e5c5197f095"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -547,6 +583,50 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
                     ""action"": ""Pause"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""57053d38-9bb5-4101-88d3-2fe6d0db502d"",
+                    ""path"": ""<Keyboard>/q"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""QuickCycleAction"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""cf826028-2b15-4aae-a289-5d12f784f59d"",
+                    ""path"": ""<Keyboard>/1"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Hotkey1Action"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""3fd27640-b147-4e4a-bde1-09a59c0bf74d"",
+                    ""path"": ""<Keyboard>/2"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Hotkey2Action"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""53985068-2a7a-4ed6-8333-cabdf383773e"",
+                    ""path"": ""<Keyboard>/3"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Hotkey3Action"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -570,6 +650,10 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
         m_GamePlay_PointerPosition = m_GamePlay.FindAction("PointerPosition", throwIfNotFound: true);
         m_GamePlay_Cancel = m_GamePlay.FindAction("Cancel", throwIfNotFound: true);
         m_GamePlay_Pause = m_GamePlay.FindAction("Pause", throwIfNotFound: true);
+        m_GamePlay_QuickCycleAction = m_GamePlay.FindAction("QuickCycleAction", throwIfNotFound: true);
+        m_GamePlay_Hotkey1Action = m_GamePlay.FindAction("Hotkey1Action", throwIfNotFound: true);
+        m_GamePlay_Hotkey2Action = m_GamePlay.FindAction("Hotkey2Action", throwIfNotFound: true);
+        m_GamePlay_Hotkey3Action = m_GamePlay.FindAction("Hotkey3Action", throwIfNotFound: true);
     }
 
     ~@PlayerInput()
@@ -665,6 +749,10 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
     private readonly InputAction m_GamePlay_PointerPosition;
     private readonly InputAction m_GamePlay_Cancel;
     private readonly InputAction m_GamePlay_Pause;
+    private readonly InputAction m_GamePlay_QuickCycleAction;
+    private readonly InputAction m_GamePlay_Hotkey1Action;
+    private readonly InputAction m_GamePlay_Hotkey2Action;
+    private readonly InputAction m_GamePlay_Hotkey3Action;
     /// <summary>
     /// Provides access to input actions defined in input action map "GamePlay".
     /// </summary>
@@ -737,6 +825,22 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
         /// </summary>
         public InputAction @Pause => m_Wrapper.m_GamePlay_Pause;
         /// <summary>
+        /// Provides access to the underlying input action "GamePlay/QuickCycleAction".
+        /// </summary>
+        public InputAction @QuickCycleAction => m_Wrapper.m_GamePlay_QuickCycleAction;
+        /// <summary>
+        /// Provides access to the underlying input action "GamePlay/Hotkey1Action".
+        /// </summary>
+        public InputAction @Hotkey1Action => m_Wrapper.m_GamePlay_Hotkey1Action;
+        /// <summary>
+        /// Provides access to the underlying input action "GamePlay/Hotkey2Action".
+        /// </summary>
+        public InputAction @Hotkey2Action => m_Wrapper.m_GamePlay_Hotkey2Action;
+        /// <summary>
+        /// Provides access to the underlying input action "GamePlay/Hotkey3Action".
+        /// </summary>
+        public InputAction @Hotkey3Action => m_Wrapper.m_GamePlay_Hotkey3Action;
+        /// <summary>
         /// Provides access to the underlying input action map instance.
         /// </summary>
         public InputActionMap Get() { return m_Wrapper.m_GamePlay; }
@@ -807,6 +911,18 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
             @Pause.started += instance.OnPause;
             @Pause.performed += instance.OnPause;
             @Pause.canceled += instance.OnPause;
+            @QuickCycleAction.started += instance.OnQuickCycleAction;
+            @QuickCycleAction.performed += instance.OnQuickCycleAction;
+            @QuickCycleAction.canceled += instance.OnQuickCycleAction;
+            @Hotkey1Action.started += instance.OnHotkey1Action;
+            @Hotkey1Action.performed += instance.OnHotkey1Action;
+            @Hotkey1Action.canceled += instance.OnHotkey1Action;
+            @Hotkey2Action.started += instance.OnHotkey2Action;
+            @Hotkey2Action.performed += instance.OnHotkey2Action;
+            @Hotkey2Action.canceled += instance.OnHotkey2Action;
+            @Hotkey3Action.started += instance.OnHotkey3Action;
+            @Hotkey3Action.performed += instance.OnHotkey3Action;
+            @Hotkey3Action.canceled += instance.OnHotkey3Action;
         }
 
         /// <summary>
@@ -863,6 +979,18 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
             @Pause.started -= instance.OnPause;
             @Pause.performed -= instance.OnPause;
             @Pause.canceled -= instance.OnPause;
+            @QuickCycleAction.started -= instance.OnQuickCycleAction;
+            @QuickCycleAction.performed -= instance.OnQuickCycleAction;
+            @QuickCycleAction.canceled -= instance.OnQuickCycleAction;
+            @Hotkey1Action.started -= instance.OnHotkey1Action;
+            @Hotkey1Action.performed -= instance.OnHotkey1Action;
+            @Hotkey1Action.canceled -= instance.OnHotkey1Action;
+            @Hotkey2Action.started -= instance.OnHotkey2Action;
+            @Hotkey2Action.performed -= instance.OnHotkey2Action;
+            @Hotkey2Action.canceled -= instance.OnHotkey2Action;
+            @Hotkey3Action.started -= instance.OnHotkey3Action;
+            @Hotkey3Action.performed -= instance.OnHotkey3Action;
+            @Hotkey3Action.canceled -= instance.OnHotkey3Action;
         }
 
         /// <summary>
@@ -1008,5 +1136,33 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnPause(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "QuickCycleAction" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnQuickCycleAction(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "Hotkey1Action" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnHotkey1Action(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "Hotkey2Action" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnHotkey2Action(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "Hotkey3Action" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnHotkey3Action(InputAction.CallbackContext context);
     }
 }
