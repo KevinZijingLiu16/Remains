@@ -209,6 +209,14 @@ public class WeaponSystemController : MonoBehaviour
             return;
         }
 
+        // CRITICAL: Close weapon panel IMMEDIATELY if it's open (no fade animation)
+        var weaponUI = _selectionUI as WeaponSelectionUI;
+        if (weaponUI != null && weaponUI.IsVisible)
+        {
+            weaponUI.HideWeaponPanelImmediate(); // Use immediate version
+            Debug.Log("[WeaponSystemController] Closed weapon panel immediately before hotkey switch");
+        }
+
         Debug.Log($"[WeaponSystemController] Hotkey {hotkeyNumber} pressed");
 
         switch (hotkeyNumber)

@@ -31,7 +31,7 @@ public class WeaponSelectionUI : MonoBehaviour, IWeaponSelectionUI
     public float mouseMovementThreshold = 5f;
 
     [Header("Quick Cycle Settings")]
-    public float autoCycleConfirmDelay = 1.0f; // 1 second auto-confirm
+    public float autoCycleConfirmDelay = 1.0f;
 
     [Header("Navigation Colors")]
     public Color normalButtonColor = Color.white;
@@ -63,9 +63,12 @@ public class WeaponSelectionUI : MonoBehaviour, IWeaponSelectionUI
     private float _lastGamepadNavigationTime;
     private Camera _uiCamera;
 
-    // Quick cycle variables
+    // Quick cycle variables with ID tracking
     private bool _isQuickCycleMode = false;
     private Coroutine _autoCycleConfirmCoroutine;
+    private int _autoCycleCoroutineId = 0; // NEW: Unique ID for each coroutine instance
+    private Coroutine _fadeOutCoroutine;
+    private Coroutine _fadeInCoroutine;
 
     void Start()
     {
@@ -138,10 +141,20 @@ public class WeaponSelectionUI : MonoBehaviour, IWeaponSelectionUI
             _equipmentManager.OnWeaponUnequipped -= UpdateCurrentWeaponDisplay;
         }
 
-        // Clean up coroutine
+        // Clean up ALL coroutines
         if (_autoCycleConfirmCoroutine != null)
         {
             StopCoroutine(_autoCycleConfirmCoroutine);
+        }
+
+        if (_fadeInCoroutine != null)
+        {
+            StopCoroutine(_fadeInCoroutine);
+        }
+
+        if (_fadeOutCoroutine != null)
+        {
+            StopCoroutine(_fadeOutCoroutine);
         }
     }
 
@@ -348,17 +361,54 @@ public class WeaponSelectionUI : MonoBehaviour, IWeaponSelectionUI
     {
         if (weaponPanel == null || availableWeapons == null) return;
 
+        // STEP 1: Invalidate any running auto-confirm coroutine by incrementing ID
+        _autoCycleCoroutineId++;
+
+        // STEP 2: Stop ALL coroutines immediately
+        if (_fadeInCoroutine != null)
+        {
+            StopCoroutine(_fadeInCoroutine);
+            _fadeInCoroutine = null;
+        }
+        if (_fadeOutCoroutine != null)
+        {
+            StopCoroutine(_fadeOutCoroutine);
+            _fadeOutCoroutine = null;
+        }
+        if (_autoCycleConfirmCoroutine != null)
+        {
+            StopCoroutine(_autoCycleConfirmCoroutine);
+            _autoCycleConfirmCoroutine = null;
+        }
+
+        // STEP 3: Force panel state to be completely reset
+        if (_panelCanvasGroup != null)
+        {
+            _panelCanvasGroup.alpha = 0f;
+            _panelCanvasGroup.interactable = false;
+            _panelCanvasGroup.blocksRaycasts = false;
+        }
+
+        // STEP 4: Make sure panel is inactive before we start
+        if (weaponPanel.activeInHierarchy)
+        {
+            weaponPanel.SetActive(false);
+        }
+
+        // STEP 5: Clear old buttons
+        ClearWeaponButtons();
+
+        // STEP 6: Now we can safely start the show process
         _originalTimeScale = Time.timeScale;
         Time.timeScale = 0f;
 
-        ClearWeaponButtons();
         _currentWeapons.Clear();
         _currentWeapons.AddRange(availableWeapons);
 
         _hasNoWeaponOption = true;
+        _isQuickCycleMode = false; // Reset quick cycle mode
 
         _currentEquippedIndex = GetCurrentEquippedIndex();
-
         _highlightedIndex = _currentEquippedIndex >= 0 ? _currentEquippedIndex : 0;
 
         CreateNoWeaponButton();
@@ -369,27 +419,67 @@ public class WeaponSelectionUI : MonoBehaviour, IWeaponSelectionUI
 
         UpdateCurrentWeaponDisplay(_equipmentManager?.CurrentWeapon);
 
+        // STEP 7: Activate panel
         weaponPanel.SetActive(true);
 
         if (_panelCanvasGroup != null)
         {
             _panelCanvasGroup.interactable = true;
             _panelCanvasGroup.blocksRaycasts = true;
-            StartCoroutine(FadeIn());
+            _fadeInCoroutine = StartCoroutine(FadeIn());
         }
 
         UpdateButtonVisuals();
+
+        if (enableDebugLogs)
+            Debug.Log("[WeaponSelectionUI] ShowWeaponPanel complete");
     }
 
-    // NEW: Quick cycle mode - opens panel and highlights next weapon in cycle
     public void ShowWeaponPanelQuickCycle(IWeapon[] availableWeapons)
     {
         if (weaponPanel == null || availableWeapons == null) return;
 
+        // STEP 1: Invalidate any running auto-confirm coroutine by incrementing ID
+        _autoCycleCoroutineId++;
+
+        // STEP 2: Stop ALL coroutines immediately
+        if (_fadeInCoroutine != null)
+        {
+            StopCoroutine(_fadeInCoroutine);
+            _fadeInCoroutine = null;
+        }
+        if (_fadeOutCoroutine != null)
+        {
+            StopCoroutine(_fadeOutCoroutine);
+            _fadeOutCoroutine = null;
+        }
+        if (_autoCycleConfirmCoroutine != null)
+        {
+            StopCoroutine(_autoCycleConfirmCoroutine);
+            _autoCycleConfirmCoroutine = null;
+        }
+
+        // STEP 3: Force panel state to be completely reset
+        if (_panelCanvasGroup != null)
+        {
+            _panelCanvasGroup.alpha = 0f;
+            _panelCanvasGroup.interactable = false;
+            _panelCanvasGroup.blocksRaycasts = false;
+        }
+
+        // STEP 4: Make sure panel is inactive before we start
+        if (weaponPanel.activeInHierarchy)
+        {
+            weaponPanel.SetActive(false);
+        }
+
+        // STEP 5: Clear old buttons
+        ClearWeaponButtons();
+
+        // STEP 6: Now we can safely start the show process
         _originalTimeScale = Time.timeScale;
         Time.timeScale = 0f;
 
-        ClearWeaponButtons();
         _currentWeapons.Clear();
         _currentWeapons.AddRange(availableWeapons);
 
@@ -398,7 +488,7 @@ public class WeaponSelectionUI : MonoBehaviour, IWeaponSelectionUI
 
         _currentEquippedIndex = GetCurrentEquippedIndex();
 
-        // Calculate next weapon in cycle: No Weapon (0) -> Foam Spray (1) -> Air Blower (2) -> No Weapon (0)
+        // Calculate next weapon in cycle
         _highlightedIndex = (_currentEquippedIndex + 1) % (_currentWeapons.Count + 1);
 
         if (enableDebugLogs)
@@ -412,29 +502,31 @@ public class WeaponSelectionUI : MonoBehaviour, IWeaponSelectionUI
 
         UpdateCurrentWeaponDisplay(_equipmentManager?.CurrentWeapon);
 
+        // STEP 7: Activate panel
         weaponPanel.SetActive(true);
 
         if (_panelCanvasGroup != null)
         {
             _panelCanvasGroup.interactable = true;
             _panelCanvasGroup.blocksRaycasts = true;
-            StartCoroutine(FadeIn());
+            _fadeInCoroutine = StartCoroutine(FadeIn());
         }
 
         UpdateButtonVisuals();
 
-        // Start 1-second auto-confirm timer
-        if (_autoCycleConfirmCoroutine != null)
-        {
-            StopCoroutine(_autoCycleConfirmCoroutine);
-        }
-        _autoCycleConfirmCoroutine = StartCoroutine(AutoConfirmCycle());
+        // STEP 8: Start auto-confirm timer with current ID
+        _autoCycleConfirmCoroutine = StartCoroutine(AutoConfirmCycle(_autoCycleCoroutineId));
+
+        if (enableDebugLogs)
+            Debug.Log("[WeaponSelectionUI] ShowWeaponPanelQuickCycle complete");
     }
 
-    // NEW: Handle subsequent Q presses during quick cycle
     public void CycleToNextWeapon()
     {
         if (!IsVisible || !_isQuickCycleMode) return;
+
+        // Invalidate current coroutine and start a new one
+        _autoCycleCoroutineId++;
 
         // Cancel current auto-confirm timer
         if (_autoCycleConfirmCoroutine != null)
@@ -449,29 +541,74 @@ public class WeaponSelectionUI : MonoBehaviour, IWeaponSelectionUI
         if (enableDebugLogs)
             Debug.Log($"[WeaponSelectionUI] Cycled to index: {_highlightedIndex}");
 
-        // Restart 1-second auto-confirm timer
-        _autoCycleConfirmCoroutine = StartCoroutine(AutoConfirmCycle());
+        // Restart 1-second auto-confirm timer with new ID
+        _autoCycleConfirmCoroutine = StartCoroutine(AutoConfirmCycle(_autoCycleCoroutineId));
     }
 
-    private IEnumerator AutoConfirmCycle()
+    // CRITICAL: Now accepts coroutineId parameter for validation
+    private IEnumerator AutoConfirmCycle(int coroutineId)
     {
         if (enableDebugLogs)
-            Debug.Log($"[WeaponSelectionUI] Starting {autoCycleConfirmDelay}s auto-confirm timer...");
+            Debug.Log($"[WeaponSelectionUI] [ID:{coroutineId}] Starting {autoCycleConfirmDelay}s auto-confirm timer...");
 
-        yield return new WaitForSecondsRealtime(autoCycleConfirmDelay);
+        float elapsed = 0f;
+        while (elapsed < autoCycleConfirmDelay)
+        {
+            // CRITICAL: Multi-layer validation
+            // 1. Check if panel is still visible
+            // 2. Check if still in quick cycle mode
+            // 3. Check if this is still the current coroutine (ID matches)
+            if (!IsVisible || !_isQuickCycleMode || _autoCycleCoroutineId != coroutineId)
+            {
+                if (enableDebugLogs)
+                    Debug.Log($"[WeaponSelectionUI] [ID:{coroutineId}] AutoConfirm cancelled - IsVisible={IsVisible}, QuickCycle={_isQuickCycleMode}, CurrentID={_autoCycleCoroutineId}");
+
+                // Only clear reference if this is still the current coroutine
+                if (_autoCycleCoroutineId == coroutineId)
+                {
+                    _autoCycleConfirmCoroutine = null;
+                }
+                yield break;
+            }
+
+            elapsed += Time.unscaledDeltaTime;
+
+            if (enableDebugLogs && (int)(elapsed * 10) % 5 == 0)
+                Debug.Log($"[WeaponSelectionUI] [ID:{coroutineId}] AutoConfirm progress: {elapsed:F2}s / {autoCycleConfirmDelay}s");
+
+            yield return null;
+        }
+
+        // Final validation before confirming
+        if (!IsVisible || !_isQuickCycleMode || _autoCycleCoroutineId != coroutineId)
+        {
+            if (enableDebugLogs)
+                Debug.Log($"[WeaponSelectionUI] [ID:{coroutineId}] AutoConfirm cancelled at completion - IsVisible={IsVisible}, QuickCycle={_isQuickCycleMode}, CurrentID={_autoCycleCoroutineId}");
+
+            if (_autoCycleCoroutineId == coroutineId)
+            {
+                _autoCycleConfirmCoroutine = null;
+            }
+            yield break;
+        }
 
         if (enableDebugLogs)
-            Debug.Log($"[WeaponSelectionUI] Auto-confirming selection at index: {_highlightedIndex}");
+            Debug.Log($"[WeaponSelectionUI] [ID:{coroutineId}] ========== AUTO-CONFIRMING at index: {_highlightedIndex} ==========");
 
         SelectWeaponAtIndex(_highlightedIndex);
-        _autoCycleConfirmCoroutine = null;
+
+        // Only clear reference if this is still the current coroutine
+        if (_autoCycleCoroutineId == coroutineId)
+        {
+            _autoCycleConfirmCoroutine = null;
+        }
     }
 
     private int GetCurrentEquippedIndex()
     {
         if (_equipmentManager == null || _equipmentManager.CurrentWeapon == null)
         {
-            return 0; // No Weapon
+            return 0;
         }
 
         for (int i = 0; i < _currentWeapons.Count; i++)
@@ -593,6 +730,60 @@ public class WeaponSelectionUI : MonoBehaviour, IWeaponSelectionUI
 
     public void HideWeaponPanel()
     {
+        // CRITICAL: Invalidate any running auto-confirm coroutine
+        _autoCycleCoroutineId++;
+
+        // Restore time scale FIRST
+        Time.timeScale = _originalTimeScale;
+
+        // Cancel auto-confirm timer if active
+        if (_autoCycleConfirmCoroutine != null)
+        {
+            StopCoroutine(_autoCycleConfirmCoroutine);
+            _autoCycleConfirmCoroutine = null;
+
+            if (enableDebugLogs)
+                Debug.Log("[WeaponSelectionUI] Stopped auto-confirm coroutine");
+        }
+
+        // Reset quick cycle mode flag
+        _isQuickCycleMode = false;
+
+        if (weaponPanel != null)
+        {
+            if (_panelCanvasGroup != null)
+            {
+                // Stop any existing fade out coroutine
+                if (_fadeOutCoroutine != null)
+                {
+                    StopCoroutine(_fadeOutCoroutine);
+                    _fadeOutCoroutine = null;
+                }
+
+                // Start new fade out
+                _fadeOutCoroutine = StartCoroutine(FadeOut());
+            }
+            else
+            {
+                weaponPanel.SetActive(false);
+            }
+        }
+
+        _highlightedIndex = -1;
+
+        if (enableDebugLogs)
+            Debug.Log("[WeaponSelectionUI] Panel hidden and all states reset");
+    }
+
+    public void HideWeaponPanelImmediate()
+    {
+        // CRITICAL: Invalidate any running auto-confirm coroutine by incrementing ID
+        _autoCycleCoroutineId++;
+
+        if (enableDebugLogs)
+            Debug.Log($"[WeaponSelectionUI] HideWeaponPanelImmediate - Invalidated coroutine ID, new ID: {_autoCycleCoroutineId}");
+
+        // Restore time scale FIRST
         Time.timeScale = _originalTimeScale;
 
         // Cancel auto-confirm timer if active
@@ -602,17 +793,38 @@ public class WeaponSelectionUI : MonoBehaviour, IWeaponSelectionUI
             _autoCycleConfirmCoroutine = null;
         }
 
+        // Stop ALL animation coroutines
+        if (_fadeInCoroutine != null)
+        {
+            StopCoroutine(_fadeInCoroutine);
+            _fadeInCoroutine = null;
+        }
+
+        if (_fadeOutCoroutine != null)
+        {
+            StopCoroutine(_fadeOutCoroutine);
+            _fadeOutCoroutine = null;
+        }
+
+        // Reset quick cycle mode flag
         _isQuickCycleMode = false;
 
+        // Immediately hide the panel without fade
         if (weaponPanel != null)
         {
             if (_panelCanvasGroup != null)
-                StartCoroutine(FadeOut());
-            else
-                weaponPanel.SetActive(false);
+            {
+                _panelCanvasGroup.alpha = 0f;
+                _panelCanvasGroup.interactable = false;
+                _panelCanvasGroup.blocksRaycasts = false;
+            }
+            weaponPanel.SetActive(false);
         }
 
         _highlightedIndex = -1;
+
+        if (enableDebugLogs)
+            Debug.Log("[WeaponSelectionUI] Panel hidden immediately (no animation)");
     }
 
     private void UpdateCurrentWeaponDisplay(IWeapon weapon)
@@ -643,6 +855,7 @@ public class WeaponSelectionUI : MonoBehaviour, IWeaponSelectionUI
                 currentWeaponText.text = "Current: No Weapon";
         }
     }
+
     public void ConvertToQuickCycleMode()
     {
         if (!IsVisible) return;
@@ -656,7 +869,6 @@ public class WeaponSelectionUI : MonoBehaviour, IWeaponSelectionUI
 
         if (enableDebugLogs)
             Debug.Log("[WeaponSelectionUI] Converted to quick cycle mode");
-
     }
 
     private void ClearWeaponButtons()
@@ -674,26 +886,39 @@ public class WeaponSelectionUI : MonoBehaviour, IWeaponSelectionUI
     {
         float elapsed = 0f;
         _panelCanvasGroup.alpha = 0f;
+
         while (elapsed < panelShowDuration)
         {
             elapsed += Time.unscaledDeltaTime;
             _panelCanvasGroup.alpha = Mathf.Lerp(0f, 1f, elapsed / panelShowDuration);
             yield return null;
         }
+
         _panelCanvasGroup.alpha = 1f;
+        _fadeInCoroutine = null;
+
+        if (enableDebugLogs)
+            Debug.Log("[WeaponSelectionUI] Fade in complete");
     }
 
     private IEnumerator FadeOut()
     {
         float elapsed = 0f;
         _panelCanvasGroup.interactable = false;
+        _panelCanvasGroup.blocksRaycasts = false;
+
         while (elapsed < panelShowDuration)
         {
             elapsed += Time.unscaledDeltaTime;
             _panelCanvasGroup.alpha = Mathf.Lerp(1f, 0f, elapsed / panelShowDuration);
             yield return null;
         }
+
         _panelCanvasGroup.alpha = 0f;
         weaponPanel.SetActive(false);
+        _fadeOutCoroutine = null;
+
+        if (enableDebugLogs)
+            Debug.Log("[WeaponSelectionUI] Fade out complete");
     }
 }

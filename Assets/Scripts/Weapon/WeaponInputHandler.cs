@@ -145,16 +145,19 @@ public class WeaponInputHandler : MonoBehaviour, IWeaponInputHandler
 
     private void OnWeaponSelectionInput(InputAction.CallbackContext context)
     {
+        Debug.Log("[WeaponInputHandler] Tab/WeaponSelection input received");
         OnWeaponSelectionRequested?.Invoke();
     }
 
     private void OnQuickCycleInput(InputAction.CallbackContext context)
     {
+        Debug.Log("[WeaponInputHandler] Q/QuickCycle input received");
         OnQuickCyclePressed?.Invoke();
     }
 
     private void OnHotkeyInput(int hotkeyNumber)
     {
+        Debug.Log($"[WeaponInputHandler] Hotkey {hotkeyNumber} input received");
         OnHotkeyPressed?.Invoke(hotkeyNumber);
     }
 
