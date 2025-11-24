@@ -29,7 +29,7 @@ public class ArmAimer : MonoBehaviour
     [SerializeField] private float rotateSpeed = 720f;
 
     [Header("Input Priority")]
-    [SerializeField] private bool preferController = false; // 若为 true，右摇杆优先
+    [SerializeField] private bool preferController = false; 
 
     [Header("Debug")]
     [SerializeField] private bool logAngleEachFrame = false;
@@ -110,12 +110,12 @@ public class ArmAimer : MonoBehaviour
 
     void Update()
     {
-        // 选择输入来源
+      
         bool useController = _hasControllerInput && (preferController || !HasPointerInside());
 
         float targetOffsetX = useController
             ? GetControllerTargetOffset()
-            : GetPointerTargetOffset(); // 使用 pointer position（新输入系统）
+            : GetPointerTargetOffset(); 
 
         _currentTargetOffsetX = Mathf.Clamp(targetOffsetX, minX, maxX);
 
@@ -124,13 +124,13 @@ public class ArmAimer : MonoBehaviour
             Debug.Log($"[ArmAimer] Current Aim Pitch: {_currentTargetOffsetX:F1}° (useController={useController})");
         }
 
-        // 应用到左右臂
+      
         ApplyLocalX(leftArmPivot, _baseLeftRot, _currentTargetOffsetX, rotateSpeed);
         float rightOffset = mirrorRight ? -_currentTargetOffsetX : _currentTargetOffsetX;
         ApplyLocalX(rightArmPivot, _baseRightRot, rightOffset, rotateSpeed);
     }
 
-    // 判断指针是否在屏幕内（用新输入系统的 pointer position）
+   
     private bool HasPointerInside()
     {
         if (pointerPositionAction.action == null) return false;
@@ -139,7 +139,7 @@ public class ArmAimer : MonoBehaviour
         return (pos.x >= 0f && pos.x <= Screen.width && pos.y >= 0f && pos.y <= Screen.height);
     }
 
-    // 用 pointer 的 Y 位置映射到 X 旋转（保持你原先手感）
+   
     private float GetPointerTargetOffset()
     {
         Vector2 pos = Vector2.zero;
@@ -150,7 +150,7 @@ public class ArmAimer : MonoBehaviour
         }
         else
         {
-            // 兜底：若没绑定，尽量从新系统 Mouse 取
+       
             if (Mouse.current != null) pos = Mouse.current.position.ReadValue();
         }
 
@@ -160,7 +160,6 @@ public class ArmAimer : MonoBehaviour
         return Mathf.Lerp(minX, maxX, t);
     }
 
-    // 右摇杆 Y -> X 旋转
     private float GetControllerTargetOffset()
     {
         float stickY = _rightStickInput.y;

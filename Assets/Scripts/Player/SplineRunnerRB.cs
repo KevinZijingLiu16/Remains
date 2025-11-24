@@ -168,7 +168,7 @@ public class SplineRunnerRB : MonoBehaviour
         UpdateOrientationWithStabilization();
         UpdateVisualEffects();
 
-        // ✓ 更新音效
+  
         UpdateMovementSound();
     }
 
@@ -410,7 +410,7 @@ public class SplineRunnerRB : MonoBehaviour
 
     #endregion
 
-    #region Audio - 修复后的版本
+    #region 
 
     private void UpdateMovementSound()
     {

@@ -8,7 +8,7 @@ public class HeadFaceEmissionByPower : MonoBehaviour
     [SerializeField] private int lowPowerThreshold = 20; 
 
     [Header("Target Material")]
-    [Tooltip("face1 材质所在的索引。你截图是第 2 张材质，所以是 1。")]
+
     [SerializeField] private int materialIndex = 1;
 
     [Header("Low Power Emission")]
@@ -33,7 +33,7 @@ public class HeadFaceEmissionByPower : MonoBehaviour
         var mats = _rend.materials;
         if (materialIndex < 0 || materialIndex >= mats.Length)
         {
-            Debug.LogError($"[HeadFaceEmissionByPower] materialIndex={materialIndex} 超出范围（共有 {mats.Length} 张材质）");
+        
             enabled = false; return;
         }
         _mat = mats[materialIndex];

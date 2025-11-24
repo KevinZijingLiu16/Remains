@@ -27,8 +27,11 @@ public class WeaponSelectionUI : MonoBehaviour, IWeaponSelectionUI
     public InputActionReference confirmActionRef;
 
     [Header("Navigation Settings")]
-    public float gamepadNavigationDelay = 0.3f; 
-    public float mouseMovementThreshold = 5f;     
+    public float gamepadNavigationDelay = 0.3f;
+    public float mouseMovementThreshold = 5f;
+
+    [Header("Quick Cycle Settings")]
+    public float autoCycleConfirmDelay = 1.0f; // 1 second auto-confirm
 
     [Header("Navigation Colors")]
     public Color normalButtonColor = Color.white;
@@ -51,7 +54,7 @@ public class WeaponSelectionUI : MonoBehaviour, IWeaponSelectionUI
     private IWeaponEquipmentManager _equipmentManager;
 
     private int _currentEquippedIndex = -1;
-    private int _highlightedIndex = 0; 
+    private int _highlightedIndex = 0;
     private float _originalTimeScale;
     private bool _hasNoWeaponOption = false;
 
@@ -59,6 +62,10 @@ public class WeaponSelectionUI : MonoBehaviour, IWeaponSelectionUI
     private Vector2 _lastMousePosition;
     private float _lastGamepadNavigationTime;
     private Camera _uiCamera;
+
+    // Quick cycle variables
+    private bool _isQuickCycleMode = false;
+    private Coroutine _autoCycleConfirmCoroutine;
 
     void Start()
     {
@@ -85,7 +92,7 @@ public class WeaponSelectionUI : MonoBehaviour, IWeaponSelectionUI
         {
             navigateActionRef.action.performed += OnNavigate;
             navigateActionRef.action.started += OnNavigate;
-            navigateActionRef.action.canceled += OnNavigateCanceled; 
+            navigateActionRef.action.canceled += OnNavigateCanceled;
         }
 
         if (confirmActionRef.action != null)
@@ -99,6 +106,7 @@ public class WeaponSelectionUI : MonoBehaviour, IWeaponSelectionUI
         if (enableDebugLogs)
             Debug.Log($"[WeaponSelectionUI] Navigate canceled from: {context.control.path}");
     }
+
     void OnEnable()
     {
         navigateActionRef?.action?.Enable();
@@ -128,6 +136,12 @@ public class WeaponSelectionUI : MonoBehaviour, IWeaponSelectionUI
         {
             _equipmentManager.OnWeaponEquipped -= UpdateCurrentWeaponDisplay;
             _equipmentManager.OnWeaponUnequipped -= UpdateCurrentWeaponDisplay;
+        }
+
+        // Clean up coroutine
+        if (_autoCycleConfirmCoroutine != null)
+        {
+            StopCoroutine(_autoCycleConfirmCoroutine);
         }
     }
 
@@ -181,7 +195,7 @@ public class WeaponSelectionUI : MonoBehaviour, IWeaponSelectionUI
         if (Time.unscaledTime - _lastGamepadNavigationTime < gamepadNavigationDelay)
             return;
 
-        float deadZone = 0.7f; 
+        float deadZone = 0.7f;
 
         if (Mathf.Abs(stickInput.y) < deadZone && Mathf.Abs(stickInput.x) < deadZone)
             return;
@@ -197,7 +211,7 @@ public class WeaponSelectionUI : MonoBehaviour, IWeaponSelectionUI
                 if (_highlightedIndex < 0)
                     _highlightedIndex = _spawnedButtons.Count - 1;
             }
-            else if (stickInput.y < -deadZone) 
+            else if (stickInput.y < -deadZone)
             {
                 _highlightedIndex++;
                 if (_highlightedIndex >= _spawnedButtons.Count)
@@ -300,7 +314,6 @@ public class WeaponSelectionUI : MonoBehaviour, IWeaponSelectionUI
         }
     }
 
-
     private IEnumerator DelayedInitializeEquipmentManager()
     {
         yield return null;
@@ -368,11 +381,97 @@ public class WeaponSelectionUI : MonoBehaviour, IWeaponSelectionUI
         UpdateButtonVisuals();
     }
 
+    // NEW: Quick cycle mode - opens panel and highlights next weapon in cycle
+    public void ShowWeaponPanelQuickCycle(IWeapon[] availableWeapons)
+    {
+        if (weaponPanel == null || availableWeapons == null) return;
+
+        _originalTimeScale = Time.timeScale;
+        Time.timeScale = 0f;
+
+        ClearWeaponButtons();
+        _currentWeapons.Clear();
+        _currentWeapons.AddRange(availableWeapons);
+
+        _hasNoWeaponOption = true;
+        _isQuickCycleMode = true;
+
+        _currentEquippedIndex = GetCurrentEquippedIndex();
+
+        // Calculate next weapon in cycle: No Weapon (0) -> Foam Spray (1) -> Air Blower (2) -> No Weapon (0)
+        _highlightedIndex = (_currentEquippedIndex + 1) % (_currentWeapons.Count + 1);
+
+        if (enableDebugLogs)
+            Debug.Log($"[WeaponSelectionUI] Quick cycle: current={_currentEquippedIndex}, next={_highlightedIndex}");
+
+        CreateNoWeaponButton();
+        for (int i = 0; i < availableWeapons.Length; i++)
+        {
+            CreateWeaponButton(availableWeapons[i], i + 1);
+        }
+
+        UpdateCurrentWeaponDisplay(_equipmentManager?.CurrentWeapon);
+
+        weaponPanel.SetActive(true);
+
+        if (_panelCanvasGroup != null)
+        {
+            _panelCanvasGroup.interactable = true;
+            _panelCanvasGroup.blocksRaycasts = true;
+            StartCoroutine(FadeIn());
+        }
+
+        UpdateButtonVisuals();
+
+        // Start 1-second auto-confirm timer
+        if (_autoCycleConfirmCoroutine != null)
+        {
+            StopCoroutine(_autoCycleConfirmCoroutine);
+        }
+        _autoCycleConfirmCoroutine = StartCoroutine(AutoConfirmCycle());
+    }
+
+    // NEW: Handle subsequent Q presses during quick cycle
+    public void CycleToNextWeapon()
+    {
+        if (!IsVisible || !_isQuickCycleMode) return;
+
+        // Cancel current auto-confirm timer
+        if (_autoCycleConfirmCoroutine != null)
+        {
+            StopCoroutine(_autoCycleConfirmCoroutine);
+        }
+
+        // Move to next weapon in cycle
+        _highlightedIndex = (_highlightedIndex + 1) % _spawnedButtons.Count;
+        UpdateButtonVisuals();
+
+        if (enableDebugLogs)
+            Debug.Log($"[WeaponSelectionUI] Cycled to index: {_highlightedIndex}");
+
+        // Restart 1-second auto-confirm timer
+        _autoCycleConfirmCoroutine = StartCoroutine(AutoConfirmCycle());
+    }
+
+    private IEnumerator AutoConfirmCycle()
+    {
+        if (enableDebugLogs)
+            Debug.Log($"[WeaponSelectionUI] Starting {autoCycleConfirmDelay}s auto-confirm timer...");
+
+        yield return new WaitForSecondsRealtime(autoCycleConfirmDelay);
+
+        if (enableDebugLogs)
+            Debug.Log($"[WeaponSelectionUI] Auto-confirming selection at index: {_highlightedIndex}");
+
+        SelectWeaponAtIndex(_highlightedIndex);
+        _autoCycleConfirmCoroutine = null;
+    }
+
     private int GetCurrentEquippedIndex()
     {
         if (_equipmentManager == null || _equipmentManager.CurrentWeapon == null)
         {
-            return 0; // No Weapon 
+            return 0; // No Weapon
         }
 
         for (int i = 0; i < _currentWeapons.Count; i++)
@@ -413,7 +512,6 @@ public class WeaponSelectionUI : MonoBehaviour, IWeaponSelectionUI
 
         ForceSetButtonIcon(buttonObj, weapon.WeaponIcon, weapon.WeaponName);
 
-  
         var button = buttonObj.GetComponent<Button>();
         if (button != null)
         {
@@ -497,6 +595,15 @@ public class WeaponSelectionUI : MonoBehaviour, IWeaponSelectionUI
     {
         Time.timeScale = _originalTimeScale;
 
+        // Cancel auto-confirm timer if active
+        if (_autoCycleConfirmCoroutine != null)
+        {
+            StopCoroutine(_autoCycleConfirmCoroutine);
+            _autoCycleConfirmCoroutine = null;
+        }
+
+        _isQuickCycleMode = false;
+
         if (weaponPanel != null)
         {
             if (_panelCanvasGroup != null)
@@ -535,6 +642,21 @@ public class WeaponSelectionUI : MonoBehaviour, IWeaponSelectionUI
             if (currentWeaponText != null)
                 currentWeaponText.text = "Current: No Weapon";
         }
+    }
+    public void ConvertToQuickCycleMode()
+    {
+        if (!IsVisible) return;
+
+        if (_isQuickCycleMode)
+        {
+            return;
+        }
+
+        _isQuickCycleMode = true;
+
+        if (enableDebugLogs)
+            Debug.Log("[WeaponSelectionUI] Converted to quick cycle mode");
+
     }
 
     private void ClearWeaponButtons()

@@ -283,7 +283,7 @@ public class GameProgressManager : MonoBehaviour
             levelName = _currentLevelName,
             position = position,
             splineT = splineT,
-            activationTime = System.DateTime.Now.Ticks  // 修复：使用Ticks而不是ToBinary()
+            activationTime = System.DateTime.Now.Ticks  
         };
 
         activeCheckPoints[key] = checkPointData;
