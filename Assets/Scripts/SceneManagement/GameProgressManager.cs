@@ -34,6 +34,13 @@ public class GameProgressManager : MonoBehaviour
 
            
             SceneManager.sceneLoaded += OnSceneLoaded;
+            var activeScene = SceneManager.GetActiveScene();
+            if (activeScene.name != hubSceneName)
+            {
+                SetCurrentLevel(activeScene.name);
+                _levelStartTime = Time.time;
+                Debug.Log($"[GameProgress] Initial active scene set as current level: {activeScene.name}");
+            }
         }
         else
         {

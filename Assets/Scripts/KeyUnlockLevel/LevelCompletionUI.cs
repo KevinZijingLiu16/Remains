@@ -54,12 +54,12 @@ public class LevelCompletionUI : MonoBehaviour
                 keyFoundPanel.SetActive(true);
 
             if (keyFoundText != null)
-                keyFoundText.text = $"Found {nextLevel} key!";
+                keyFoundText.text = $"Found next level key!";
 
             if (continueButton != null)
             {
                 continueButton.gameObject.SetActive(true);
-                continueButton.GetComponentInChildren<TextMeshProUGUI>().text = $"Continue {nextLevel}";
+                continueButton.GetComponentInChildren<TextMeshProUGUI>().text = $"Continue tp next level";
             }
         }
         else

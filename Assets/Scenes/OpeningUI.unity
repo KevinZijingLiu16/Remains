@@ -3096,9 +3096,9 @@ MonoBehaviour:
     volume: 0.5
     fadeInTime: 1
     fadeOutTime: 0.5
-  - sceneName: Level1
-    bgmIdentifier: BGM_Level1
-    bgmSoundName: Level1Theme
+  - sceneName: FactoryLevel
+    bgmIdentifier: BGM_Factory
+    bgmSoundName: BGM_Factory
     volume: 0.5
     fadeInTime: 1
     fadeOutTime: 0.5
