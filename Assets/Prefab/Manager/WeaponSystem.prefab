@@ -545,6 +545,54 @@ MonoBehaviour:
       m_SingletonActionBindings: []
       m_Flags: 0
     m_Reference: {fileID: -7561899546735797782, guid: b447556366fb23b42aaea5a29fd1045e, type: 3}
+  quickCycleAction:
+    m_UseReference: 1
+    m_Action:
+      m_Name: Quick Cycle
+      m_Type: 0
+      m_ExpectedControlType: 
+      m_Id: 2f89c319-a78f-4ab7-a9f7-35f4c7ed39d0
+      m_Processors: 
+      m_Interactions: 
+      m_SingletonActionBindings: []
+      m_Flags: 0
+    m_Reference: {fileID: -983830051689806624, guid: b447556366fb23b42aaea5a29fd1045e, type: 3}
+  hotkey1Action:
+    m_UseReference: 1
+    m_Action:
+      m_Name: Hotkey 1
+      m_Type: 0
+      m_ExpectedControlType: 
+      m_Id: 1276c847-125f-4613-b9af-0e8f24b3e84a
+      m_Processors: 
+      m_Interactions: 
+      m_SingletonActionBindings: []
+      m_Flags: 0
+    m_Reference: {fileID: 2569053510836047113, guid: b447556366fb23b42aaea5a29fd1045e, type: 3}
+  hotkey2Action:
+    m_UseReference: 1
+    m_Action:
+      m_Name: Hotkey 2
+      m_Type: 0
+      m_ExpectedControlType: 
+      m_Id: cc9070a8-9822-4303-8500-6d1f55a5c774
+      m_Processors: 
+      m_Interactions: 
+      m_SingletonActionBindings: []
+      m_Flags: 0
+    m_Reference: {fileID: -7741435368318996962, guid: b447556366fb23b42aaea5a29fd1045e, type: 3}
+  hotkey3Action:
+    m_UseReference: 1
+    m_Action:
+      m_Name: Hotkey 3
+      m_Type: 0
+      m_ExpectedControlType: 
+      m_Id: e05cf6a3-fb48-4e25-b847-f90a9554122f
+      m_Processors: 
+      m_Interactions: 
+      m_SingletonActionBindings: []
+      m_Flags: 0
+    m_Reference: {fileID: -7501179834197033095, guid: b447556366fb23b42aaea5a29fd1045e, type: 3}
   moveAction:
     m_UseReference: 1
     m_Action:
@@ -618,6 +666,8 @@ MonoBehaviour:
   inputHandler: {fileID: 6352575081886149860}
   selectionUI: {fileID: 8873849828373940782}
   equipmentManager: {fileID: 3562558427917213921}
+  hotkey2WeaponId: foam_spray
+  hotkey3WeaponId: air_blower
 --- !u!1 &1371538097226626179
 GameObject:
   m_ObjectHideFlags: 0
@@ -683,7 +733,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 29604a0fcf6c8024691dee9435296811, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 2f5bc4abe15ffac489796e32e51c0643, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -860,8 +910,8 @@ RectTransform:
   m_GameObject: {fileID: 3917599745338550044}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
+  m_LocalScale: {x: 0.44, y: 0.44, z: 0.44}
+  m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 5218874011509319597}
   - {fileID: 436589934010507113}
@@ -903,7 +953,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 29604a0fcf6c8024691dee9435296811, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 2f5bc4abe15ffac489796e32e51c0643, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -945,24 +995,14 @@ MonoBehaviour:
   currentWeaponDisplay: {fileID: 3917599745338550044}
   currentWeaponIcon: {fileID: 267556502730130989}
   currentWeaponText: {fileID: 764595032471771731}
-  moveAction:
-    m_UseReference: 1
-    m_Action:
-      m_Name: Move
-      m_Type: 0
-      m_ExpectedControlType: 
-      m_Id: 99c6a348-1a8c-4648-9b75-28d2d409150c
-      m_Processors: 
-      m_Interactions: 
-      m_SingletonActionBindings: []
-      m_Flags: 0
-    m_Reference: {fileID: 4082227835250376965, guid: b447556366fb23b42aaea5a29fd1045e, type: 3}
+  navigateActionRef: {fileID: -7496985388274266822, guid: b447556366fb23b42aaea5a29fd1045e, type: 3}
+  confirmActionRef: {fileID: -6614244484200296865, guid: b447556366fb23b42aaea5a29fd1045e, type: 3}
+  gamepadNavigationDelay: 0.3
+  mouseMovementThreshold: 5
+  autoCycleConfirmDelay: 1
   normalButtonColor: {r: 0, g: 0, b: 0, a: 0.5882353}
   selectedButtonColor: {r: 1, g: 1, b: 1, a: 1}
-  autoConfirmDelay: 1
-  inputCooldown: 0.15
   panelShowDuration: 0.3
-  allowMousePointer: 0
   enableDebugLogs: 1
 --- !u!1 &4785052327897846012
 GameObject:
@@ -1010,6 +1050,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   weaponEquipPoint: {fileID: 0}
   weaponDatabase: {fileID: 11400000, guid: 545a98747cbaf4b4e986ab4dbaf728ea, type: 2}
+  equipSoundName: WeaponEquip
+  unequipSoundName: WeaponUnequip
+  equipSoundVolume: 0.8
   enableDebugLogs: 1
   showEquipPointGizmo: 1
 --- !u!1 &5227922498221787330
@@ -1072,7 +1115,7 @@ Canvas:
   m_AdditionalShaderChannelsFlag: 25
   m_UpdateRectTransformForStandalone: 0
   m_SortingLayerID: 0
-  m_SortingOrder: 1
+  m_SortingOrder: 2
   m_TargetDisplay: 0
 --- !u!114 &6092707055306994941
 MonoBehaviour:
@@ -1086,7 +1129,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0cd44c1031e13a943bb63640046fad76, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_UiScaleMode: 0
+  m_UiScaleMode: 1
   m_ReferencePixelsPerUnit: 100
   m_ScaleFactor: 1
   m_ReferenceResolution: {x: 800, y: 600}

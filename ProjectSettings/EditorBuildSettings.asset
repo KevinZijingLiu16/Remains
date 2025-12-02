@@ -39,6 +39,9 @@ EditorBuildSettings:
     path: Assets/Scenes/DemoV1New.unity
     guid: 73cdca6389dc8824a80be2c58d6b09a9
   - enabled: 1
+    path: Assets/Scenes/Hasan Scenes/Factory Level.unity
+    guid: c2045bec77911414aa6b6a24a5384c30
+  - enabled: 1
     path: Assets/Scenes/TempLevel1.unity
     guid: 18e5db0a902a2ef40aeaa5b399b809c3
   m_configObjects:
