@@ -27,6 +27,9 @@ EditorBuildSettings:
     path: Assets/Jasper Work Folder/Jasper_DemoV1.unity
     guid: 3e664093f854f7c45b886dd1d3b9ae02
   - enabled: 1
+    path: Assets/Scenes/Beginning.unity
+    guid: eee4a006469e46c4d8e442ecfd5c07a9
+  - enabled: 1
     path: Assets/Scenes/OpenningScene.unity
     guid: 7ae049ba5080b11439e4a6665b867d17
   - enabled: 1
