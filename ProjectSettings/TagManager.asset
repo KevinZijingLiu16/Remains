@@ -8,6 +8,7 @@ TagManager:
   - wheel
   - Animal
   - FoamPlatform
+  - TopObstacle
   layers:
   - Default
   - TransparentFX
