@@ -42,6 +42,7 @@ public class BatteryHolder : MonoBehaviour
         if (enableDebugLogs)
         {
             Debug.Log("[BatteryHolder] System initialized");
+            //test
         }
     }
 
