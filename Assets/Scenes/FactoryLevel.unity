@@ -69653,10 +69653,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   requiresBattery: 1
   linkedBatterySlot: {fileID: 3812351452599851897}
-  pointA: {fileID: 181419634}
+  pointA: {fileID: 391017621}
   pointB: {fileID: 1997005489}
   moveSpeed: 5
-  waitTimeAtPoints: 100
+  waitTimeAtPoints: 2
   movementCurve:
     serializedVersion: 2
     m_Curve:
@@ -69711,8 +69711,8 @@ MonoBehaviour:
   linkedBatterySlot: {fileID: 3812351452599851897}
   pointA: {fileID: 391017621}
   pointB: {fileID: 108245089}
-  moveSpeed: 2
-  waitTimeAtPoints: 1
+  moveSpeed: 5
+  waitTimeAtPoints: 2
   movementCurve:
     serializedVersion: 2
     m_Curve:
@@ -96646,9 +96646,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2da11d0b8d4f01a4c8a471f70a33adff, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  TopObstacle: {fileID: 7876723336741960677}
-  moveOffset: {x: 0, y: -17.88, z: 0}
-  moveTime: 5
 --- !u!1001 &2045131432
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -103654,7 +103651,7 @@ Transform:
   m_GameObject: {fileID: 399551784529345395}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -244.9162, y: -32.5193, z: -45.87494}
+  m_LocalPosition: {x: -244.9162, y: -32.5193, z: -11.5}
   m_LocalScale: {x: -1.01, y: 30.82, z: 59.5}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -110868,7 +110865,7 @@ Transform:
   m_GameObject: {fileID: 2119751298495836033}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -244.9162, y: -32.5193, z: 13.485077}
+  m_LocalPosition: {x: -244.9162, y: -32.5193, z: -11.5}
   m_LocalScale: {x: -1.01, y: 30.82, z: 59.5}
   m_ConstrainProportionsScale: 0
   m_Children: []
